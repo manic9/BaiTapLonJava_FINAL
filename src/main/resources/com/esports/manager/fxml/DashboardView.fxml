@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.esports.manager.controller.DashboardController">
+
+    <VBox spacing="20.0">
+        <padding>
+            <Insets bottom="12.0" right="4.0" />
+        </padding>
+
+        <!-- ==================== TOP KPI CARDS ==================== -->
+        <HBox spacing="16.0">
+            <!-- KPI 1: Tổng giải đấu -->
+            <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="card" HBox.hgrow="ALWAYS">
+                <StackPane style="-fx-background-color: rgba(124, 92, 252, 0.16); -fx-background-radius: 12px; -fx-padding: 13;">
+                    <FontIcon iconColor="#7C5CFC" iconLiteral="fas-trophy" iconSize="20" />
+                </StackPane>
+                <VBox spacing="3.0">
+                    <Label styleClass="kpi-label" text="TỔNG GIẢI ĐẤU" />
+                    <Label fx:id="lblTotalTournaments" styleClass="kpi-value" text="0" />
+                    <Label fx:id="lblOngoingTournaments" style="-fx-text-fill: #00D4FF; -fx-font-size: 11.5px; -fx-font-weight: 600;" text="0 đang diễn ra" />
+                </VBox>
+            </HBox>
+
+            <!-- KPI 2: Đội tuyển & Tuyển thủ -->
+            <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="card" HBox.hgrow="ALWAYS">
+                <StackPane style="-fx-background-color: rgba(0, 212, 255, 0.14); -fx-background-radius: 12px; -fx-padding: 13;">
+                    <FontIcon iconColor="#00D4FF" iconLiteral="fas-shield-alt" iconSize="20" />
+                </StackPane>
+                <VBox spacing="3.0">
+                    <Label styleClass="kpi-label" text="ĐỘI TUYỂN HỆ THỐNG" />
+                    <Label fx:id="lblTotalTeams" styleClass="kpi-value" text="0" />
+                    <Label fx:id="lblTotalPlayers" style="-fx-text-fill: #94A3B8; -fx-font-size: 11.5px;" text="0 tuyển thủ đăng ký" />
+                </VBox>
+            </HBox>
+
+            <!-- KPI 3: Trận đấu -->
+            <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="card" HBox.hgrow="ALWAYS">
+                <StackPane style="-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 13;">
+                    <FontIcon iconColor="#10B981" iconLiteral="fas-gamepad" iconSize="20" />
+                </StackPane>
+                <VBox spacing="3.0">
+                    <Label styleClass="kpi-label" text="TRẬN ĐẤU" />
+                    <Label fx:id="lblTotalMatches" styleClass="kpi-value" text="0" />
+                    <Label fx:id="lblLiveMatches" style="-fx-text-fill: #10B981; -fx-font-size: 11.5px; -fx-font-weight: 600;" text="0 trận đang LIVE" />
+                </VBox>
+            </HBox>
+
+            <!-- KPI 4: Tổng quỹ giải thưởng -->
+            <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="card" HBox.hgrow="ALWAYS">
+                <StackPane style="-fx-background-color: rgba(245, 158, 11, 0.16); -fx-background-radius: 12px; -fx-padding: 13;">
+                    <FontIcon iconColor="#F59E0B" iconLiteral="fas-coins" iconSize="20" />
+                </StackPane>
+                <VBox spacing="3.0">
+                    <Label styleClass="kpi-label" text="TỔNG QUỸ GIẢI THƯỞNG" />
+                    <Label fx:id="lblTotalPrizePool" styleClass="kpi-value" text="\$0" />
+                    <Label fx:id="lblPendingRegs" style="-fx-text-fill: #F59E0B; -fx-font-size: 11.5px;" text="0 đơn đăng ký chờ duyệt" />
+                </VBox>
+            </HBox>
+        </HBox>
+
+        <!-- ==================== MAIN DASHBOARD GRID ==================== -->
+        <HBox spacing="18.0" VBox.vgrow="ALWAYS">
+
+            <!-- LEFT COLUMN: Giải đấu nổi bật & Trận đấu LIVE -->
+            <VBox spacing="18.0" HBox.hgrow="ALWAYS">
+                <!-- Card: Giải đấu tiêu điểm -->
+                <VBox spacing="14.0" styleClass="card">
+                    <HBox alignment="CENTER_LEFT">
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <FontIcon iconColor="#7C5CFC" iconLiteral="fas-fire" iconSize="15" />
+                            <Label styleClass="section-title" text="Giải đấu đang hoạt động &amp; Sắp khởi tranh" />
+                        </HBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleViewAllTournaments" styleClass="btn-secondary" text="Xem tất cả" />
+                    </HBox>
+
+                    <VBox fx:id="featuredTournamentsBox" spacing="10.0" />
+                </VBox>
+
+                <!-- Card: Trận đấu tâm điểm -->
+                <VBox spacing="14.0" styleClass="card">
+                    <HBox alignment="CENTER_LEFT">
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <FontIcon iconColor="#00D4FF" iconLiteral="fas-broadcast-tower" iconSize="15" />
+                            <Label styleClass="section-title" text="Lịch thi đấu &amp; Tỉ số trực tiếp" />
+                        </HBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleViewAllMatches" styleClass="btn-secondary" text="Quản lý trận đấu" />
+                    </HBox>
+
+                    <VBox fx:id="spotlightMatchesBox" spacing="10.0" />
+                </VBox>
+            </VBox>
+
+            <!-- RIGHT COLUMN: Hoạt động gần đây -->
+            <VBox prefWidth="390.0" minWidth="350.0" spacing="14.0" styleClass="card">
+                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                    <FontIcon iconColor="#00D4FF" iconLiteral="fas-history" iconSize="15" />
+                    <Label styleClass="section-title" text="Hoạt động gần đây" />
+                </HBox>
+
+                <VBox fx:id="activityFeedBox" spacing="10.0" />
+            </VBox>
+
+        </HBox>
+    </VBox>
+</ScrollPane>

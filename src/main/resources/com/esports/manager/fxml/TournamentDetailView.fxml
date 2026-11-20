@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.esports.manager.controller.TournamentDetailController">
+
+    <!-- ==================== ACTION BAR ==================== -->
+    <HBox alignment="CENTER_LEFT" spacing="12.0">
+        <Button onAction="#handleBack" styleClass="btn-secondary" text="Quay lại danh sách">
+            <graphic><FontIcon iconColor="#94A3B8" iconLiteral="fas-arrow-left" iconSize="12" /></graphic>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button onAction="#handleGenerateBracket" styleClass="btn-secondary" text="Tạo nhánh đấu tự động">
+            <graphic><FontIcon iconColor="#00D4FF" iconLiteral="fas-magic" iconSize="12" /></graphic>
+        </Button>
+
+        <Button onAction="#handleOpenBracket" styleClass="btn-primary" text="Xem Tournament Bracket">
+            <graphic><FontIcon iconColor="WHITE" iconLiteral="fas-sitemap" iconSize="13" /></graphic>
+        </Button>
+    </HBox>
+
+    <!-- ==================== HERO BANNER CARD ==================== -->
+    <VBox spacing="14.0" styleClass="card">
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <Label fx:id="lblStatusBadge" styleClass="badge" text="ĐANG DIỄN RA" />
+            <Label fx:id="lblGameBadge" style="-fx-background-color: rgba(124, 92, 252, 0.2); -fx-text-fill: #A78BFA; -fx-padding: 4 10; -fx-background-radius: 20px; -fx-font-weight: bold; -fx-font-size: 11px;" text="VALORANT" />
+            <Label fx:id="lblTournamentId" style="-fx-text-fill: #64748B; -fx-font-weight: bold;" text="#TRN-VCT26" />
+        </HBox>
+
+        <VBox spacing="4.0">
+            <Label fx:id="lblName" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="Tên Giải Đấu" />
+            <Label fx:id="lblDescription" wrapText="true" style="-fx-text-fill: #94A3B8; -fx-font-size: 13px;" text="Mô tả giải đấu..." />
+        </VBox>
+
+        <!-- 4 Metadata Mini-Cards -->
+        <HBox spacing="14.0">
+            <VBox spacing="3.0" styleClass="card-elevated" HBox.hgrow="ALWAYS">
+                <Label style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-font-weight: bold;" text="QUỸ GIẢI THƯỞNG" />
+                <Label fx:id="lblPrizePool" style="-fx-text-fill: #00D4FF; -fx-font-size: 17px; -fx-font-weight: bold;" text="\$25,000" />
+            </VBox>
+
+            <VBox spacing="3.0" styleClass="card-elevated" HBox.hgrow="ALWAYS">
+                <Label style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-font-weight: bold;" text="ĐỘI THAM DỰ" />
+                <Label fx:id="lblTeamSlots" style="-fx-text-fill: #F8FAFC; -fx-font-size: 17px; -fx-font-weight: bold;" text="8 / 8 Đội" />
+            </VBox>
+
+            <VBox spacing="3.0" styleClass="card-elevated" HBox.hgrow="ALWAYS">
+                <Label style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-font-weight: bold;" text="THỂ THỨC &amp; TỔ CHỨC" />
+                <Label fx:id="lblFormatOrganizer" style="-fx-text-fill: #F8FAFC; -fx-font-size: 14px; -fx-font-weight: bold;" text="Single Elimination • Riot Games" />
+            </VBox>
+
+            <VBox spacing="3.0" styleClass="card-elevated" HBox.hgrow="ALWAYS">
+                <Label style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-font-weight: bold;" text="THỜI GIAN &amp; ĐỊA ĐIỂM" />
+                <Label fx:id="lblDateLocation" style="-fx-text-fill: #F8FAFC; -fx-font-size: 14px; -fx-font-weight: bold;" text="17/11 - 27/11 • TP.HCM" />
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <!-- ==================== DETAIL TABS ==================== -->
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS"
+             style="-fx-background-color: #121722; -fx-border-color: #1E293B; -fx-border-radius: 12px; -fx-background-radius: 12px;">
+        <tabs>
+            <!-- Tab 1: Đội tuyển tham dự -->
+            <Tab text="Đội tuyển tham dự">
+                <VBox spacing="10.0">
+                    <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
+                    <TableView fx:id="regTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colRegSeed" prefWidth="80.0" text="SEED" />
+                            <TableColumn fx:id="colRegTeam" prefWidth="240.0" text="ĐỘI TUYỂN" />
+                            <TableColumn fx:id="colRegRegion" prefWidth="130.0" text="KHU VỰC" />
+                            <TableColumn fx:id="colRegNotes" prefWidth="280.0" text="GHI CHÚ HỒ SƠ" />
+                            <TableColumn fx:id="colRegStatus" prefWidth="130.0" text="TRẠNG THÁI" />
+                            <TableColumn fx:id="colRegAction" prefWidth="140.0" text="XÉT DUYỆT" />
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 2: Lịch thi đấu & Kết quả -->
+            <Tab text="Lịch thi đấu &amp; Kết quả">
+                <VBox spacing="10.0">
+                    <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
+                    <TableView fx:id="matchTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colMatchRound" prefWidth="160.0" text="VÒNG ĐẤU" />
+                            <TableColumn fx:id="colMatchTeamA" prefWidth="210.0" text="ĐỘI A" />
+                            <TableColumn fx:id="colMatchScore" prefWidth="110.0" text="TỈ SỐ" />
+                            <TableColumn fx:id="colMatchTeamB" prefWidth="210.0" text="ĐỘI B" />
+                            <TableColumn fx:id="colMatchBo" prefWidth="90.0" text="THỂ THỨC" />
+                            <TableColumn fx:id="colMatchStatus" prefWidth="140.0" text="TRẠNG THÁI" />
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 3: Cơ cấu giải thưởng -->
+            <Tab text="Cơ cấu giải thưởng">
+                <VBox spacing="10.0">
+                    <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
+                    <TableView fx:id="prizeTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colPrizeRank" prefWidth="200.0" text="THỨ HẠNG" />
+                            <TableColumn fx:id="colPrizePercent" prefWidth="110.0" text="TỶ LỆ (%)" />
+                            <TableColumn fx:id="colPrizeAmount" prefWidth="160.0" text="GIÁ TRỊ" />
+                            <TableColumn fx:id="colPrizeTeam" prefWidth="230.0" text="ĐỘI NHẬN GIẢI" />
+                            <TableColumn fx:id="colPrizePaid" prefWidth="150.0" text="GIẢI NGÂN" />
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </Tab>
+        </tabs>
+    </TabPane>
+
+</VBox>
