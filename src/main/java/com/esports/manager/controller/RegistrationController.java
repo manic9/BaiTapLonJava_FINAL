@@ -379,9 +379,7 @@ public class RegistrationController {
 
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == btnSave) {
-                reg.setSeedNumber(spSeed.getValue());
-                reg.setNotes(txtNotes.getText().trim());
-                ctx.getRegistrationRepo().save(reg);
+                ctx.getRegistrationService().updateSeedAndNotes(reg.getId(), spSeed.getValue(), txtNotes.getText().trim());
                 registrationTable.refresh();
                 ToastManager.showSuccess("Đã cập nhật thông tin Seed & Ghi chú!");
             }

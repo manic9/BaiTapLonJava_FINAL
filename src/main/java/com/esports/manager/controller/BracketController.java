@@ -14,6 +14,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
+import org.kordamp.ikonli.javafx.FontIcon;
+
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -249,14 +251,6 @@ public class BracketController {
         return card;
     }
 
-    private void renderEmptyState() {
-        Label lbl = new Label("Chưa có nhánh đấu. Hãy tạo nhánh đấu từ trang Chi tiết giải đấu.");
-        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 14px;");
-        lbl.setLayoutX(bracketCanvas.getPrefWidth() / 2 - 180);
-        lbl.setLayoutY(bracketCanvas.getPrefHeight() / 2 - 10);
-        bracketCanvas.getChildren().add(lbl);
-    }
-
     private HBox createTeamRow(String teamId, int score, boolean isWinner) {
         HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -276,4 +270,36 @@ public class BracketController {
 
         Label nameLbl = new Label(name);
         nameLbl.setMaxWidth(145);
-        nameLbl.setStyle("-fx-text-fill:
+        nameLbl.setStyle("-fx-text-fill: " + (teamOpt.isPresent() ? (isWinner ? "#F8FAFC" : "#CBD5E1") : "#64748B") + "; " +
+                "-fx-font-weight: " + (isWinner ? "bold" : "normal") + "; -fx-font-size: 11.5px;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label scoreLbl = new Label(String.valueOf(score));
+        scoreLbl.setStyle("-fx-text-fill: " + (isWinner ? "#00D4FF" : "#94A3B8") + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+
+        row.getChildren().addAll(tagPill, nameLbl, spacer, scoreLbl);
+        return row;
+    }
+
+    private void renderEmptyState() {
+        VBox emptyBox = new VBox(12);
+        emptyBox.setAlignment(Pos.CENTER);
+        emptyBox.setLayoutX(330);
+        emptyBox.setLayoutY(190);
+
+        FontIcon icon = new FontIcon("fas-sitemap");
+        icon.setIconSize(38);
+        icon.setStyle("-fx-icon-color: #334155;");
+
+        Label lbl = new Label("Giải đấu này chưa có sơ đồ nhánh đấu.");
+        lbl.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 15px; -fx-font-weight: bold;");
+
+        Label sub = new Label("Hãy đảm bảo giải có tối thiểu 4 đội được duyệt và nhấn \"Tạo / Làm mới nhánh đấu\".");
+        sub.setStyle("-fx-text-fill: #64748B; -fx-font-size: 12.5px;");
+
+        emptyBox.getChildren().addAll(icon, lbl, sub);
+        bracketCanvas.getChildren().add(emptyBox);
+    }
+}

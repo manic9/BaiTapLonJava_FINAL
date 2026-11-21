@@ -70,4 +70,14 @@ public class RegistrationService {
     public boolean delete(String id) {
         return registrationRepo.deleteById(id);
     }
+
+    public void updateSeedAndNotes(String registrationId, int seedNumber, String notes) {
+        registrationRepo.findById(registrationId).ifPresent(reg -> {
+            reg.setSeedNumber(seedNumber);
+            reg.setNotes(notes);
+            registrationRepo.save(reg);
+            activityService.log("REGISTRATION",
+                    "Cập nhật seed & ghi chú cho đội " + teamService.getTeamNameOrTbd(reg.getTeamId()));
+        });
+    }
 }
