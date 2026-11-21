@@ -54,7 +54,9 @@ public final class ViewNavigator {
             fade.setToValue(1.0);
             fade.play();
         } catch (IOException e) {
-            ToastManager.showError("Lỗi tải giao diện: " + e.getMessage());
+            e.printStackTrace();
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            ToastManager.showError("Lỗi tải giao diện: " + cause.getMessage());
         }
     }
 }
