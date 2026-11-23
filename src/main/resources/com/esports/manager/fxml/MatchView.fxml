@@ -13,29 +13,30 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.esports.manager.controller.MatchController">
+      fx:controller="com.esports.manager.controller.MatchController"
+      fx:bundle="messages">
 
     <!-- ==================== FILTER & ACTION BAR ==================== -->
     <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="card">
         <HBox alignment="CENTER_LEFT" spacing="8.0"
               style="-fx-background-color: #0E131D; -fx-border-color: #1E293B; -fx-border-radius: 9px; -fx-background-radius: 9px; -fx-padding: 2 10 2 12;">
             <FontIcon iconColor="#64748B" iconLiteral="fas-search" iconSize="13" />
-            <TextField fx:id="txtSearch" prefWidth="230.0" promptText="Tìm tên đội, mã trận, vòng đấu..."
+            <TextField fx:id="txtSearch" prefWidth="230.0" promptText="%match.search_prompt"
                        style="-fx-background-color: transparent; -fx-border-color: transparent;" />
         </HBox>
 
-        <ComboBox fx:id="cbTournamentFilter" prefWidth="235.0" promptText="Tất cả giải đấu" />
-        <ComboBox fx:id="cbStatusFilter" prefWidth="165.0" promptText="Tất cả trạng thái" />
+        <ComboBox fx:id="cbTournamentFilter" prefWidth="235.0" promptText="%filter.all_tournaments" />
+        <ComboBox fx:id="cbStatusFilter" prefWidth="165.0" promptText="%filter.all_statuses" />
 
-        <Button onAction="#handleResetFilters" styleClass="btn-secondary" text="Đặt lại">
+        <Button onAction="#handleResetFilters" styleClass="btn-secondary" text="%btn.reset">
             <graphic><FontIcon iconColor="#94A3B8" iconLiteral="fas-redo" iconSize="12" /></graphic>
         </Button>
 
         <Region HBox.hgrow="ALWAYS" />
 
-        <Label fx:id="lblResultCount" style="-fx-text-fill: #94A3B8; -fx-font-weight: 600;" text="0 trận đấu" />
+        <Label fx:id="lblResultCount" style="-fx-text-fill: #94A3B8; -fx-font-weight: 600;" text="0" />
 
-        <Button onAction="#handleCreateMatch" styleClass="btn-primary" text="Tạo Trận Đấu">
+        <Button onAction="#handleCreateMatch" styleClass="btn-primary" text="%match.btn_create">
             <graphic><FontIcon iconColor="WHITE" iconLiteral="fas-plus" iconSize="12" /></graphic>
         </Button>
     </HBox>
@@ -43,16 +44,15 @@
     <!-- ==================== MATCHES DATA TABLE ==================== -->
     <TableView fx:id="matchTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colId" prefWidth="105.0" text="MÃ TRẬN" />
-            <TableColumn fx:id="colTournament" prefWidth="210.0" text="GIẢI ĐẤU" />
-            <TableColumn fx:id="colRound" prefWidth="135.0" text="VÒNG ĐẤU" />
-            <TableColumn fx:id="colTeamA" prefWidth="185.0" text="ĐỘI A" />
-            <TableColumn fx:id="colScore" prefWidth="105.0" text="TỈ SỐ" />
-            <TableColumn fx:id="colTeamB" prefWidth="185.0" text="ĐỘI B" />
-            <TableColumn fx:id="colBestOf" prefWidth="75.0" text="BO" />
-            <TableColumn fx:id="colTime" prefWidth="130.0" text="LỊCH THI ĐẤU" />
-            <TableColumn fx:id="colStatus" prefWidth="125.0" text="TRẠNG THÁI" />
-            <TableColumn fx:id="colActions" prefWidth="185.0" text="THAO TÁC" />
+            <TableColumn fx:id="colId" prefWidth="105.0" text="%col.match_id" />
+            <TableColumn fx:id="colTournament" prefWidth="210.0" text="%col.tournament" />
+            <TableColumn fx:id="colRound" prefWidth="135.0" text="%col.round" />
+            <TableColumn fx:id="colTeamA" prefWidth="185.0" text="%col.team_a" />
+            <TableColumn fx:id="colScore" prefWidth="105.0" text="%col.score" />
+            <TableColumn fx:id="colTeamB" prefWidth="185.0" text="%col.team_b" />
+            <TableColumn fx:id="colBestOf" prefWidth="75.0" text="%col.best_of" />
+            <TableColumn fx:id="colTime" prefWidth="130.0" text="%col.schedule" />
+            <TableColumn fx:id="colStatus" prefWidth="125.0" text="%col.status" />
         </columns>
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

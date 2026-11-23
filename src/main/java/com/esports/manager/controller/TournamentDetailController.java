@@ -8,6 +8,7 @@ import com.esports.manager.model.Team;
 import com.esports.manager.model.Tournament;
 import com.esports.manager.model.enums.MatchStatus;
 import com.esports.manager.model.enums.RegistrationStatus;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import com.esports.manager.util.ViewNavigator;
 import javafx.beans.property.SimpleObjectProperty;
@@ -15,7 +16,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -33,6 +40,10 @@ public class TournamentDetailController {
     @FXML private Label lblTeamSlots;
     @FXML private Label lblFormatOrganizer;
     @FXML private Label lblDateLocation;
+
+    // Language Toggle
+    @FXML private StackPane langTogglePane;
+    @FXML private ImageView ivLangFlag;
 
     // Tab 1: Registrations
     @FXML private TableView<Registration> regTable;
@@ -70,6 +81,31 @@ public class TournamentDetailController {
         setupRegistrationColumns();
         setupMatchColumns();
         setupPrizeColumns();
+        updateLangButton();
+        I18n.addListener(lang -> updateLangButton());
+    }
+
+    private void updateLangButton() {
+        I18n.Language current = I18n.getCurrentLanguage();
+        String flagPath;
+        if (current == I18n.Language.ENGLISH) {
+            flagPath = "/com/esports/manager/images/vietnam.png";
+        } else {
+            flagPath = "/com/esports/manager/images/united-kingdom.png";
+        }
+        InputStream is = getClass().getResourceAsStream(flagPath);
+        if (is != null) {
+            ivLangFlag.setImage(new Image(is));
+        }
+        String tooltipKey = (current == I18n.Language.ENGLISH) ? "lang.tooltip.vi" : "lang.tooltip.en";
+        Tooltip.install(langTogglePane, new Tooltip(I18n.get(tooltipKey)));
+    }
+
+    @FXML
+    public void handleToggleLanguage(MouseEvent event) {
+        I18n.Language current = I18n.getCurrentLanguage();
+        I18n.Language next = (current == I18n.Language.ENGLISH) ? I18n.Language.VIETNAMESE : I18n.Language.ENGLISH;
+        I18n.setLanguage(next);
     }
 
     public void setTournament(Tournament tournament) {
@@ -238,8 +274,7 @@ public class TournamentDetailController {
 
     @FXML
     public void handleBack() {
-        ViewNavigator.navigate("TournamentView.fxml", "Tournament Management",
-                "Tạo mới, chỉnh sửa, lọc và vận hành các giải đấu Esports");
+        ViewNavigator.navigate("TournamentView.fxml", I18n.get("page.tournaments.title"));
     }
 
     @FXML
@@ -258,8 +293,7 @@ public class TournamentDetailController {
     public void handleOpenBracket() {
         if (tournament == null) return;
         ViewNavigator.<BracketController>navigate(
-                "BracketView.fxml", "Tournament Bracket",
-                "Sơ đồ nhánh đấu — " + tournament.getName(),
+                "BracketView.fxml", I18n.get("page.bracket.title"),
                 ctrl -> ctrl.selectTournament(tournament.getId())
         );
     }

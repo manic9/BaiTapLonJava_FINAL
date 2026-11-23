@@ -180,11 +180,11 @@ public class BracketController {
     private Label createRoundHeader(int round, int totalRounds, double x) {
         String title;
         if (round == totalRounds) {
-            title = "CHUNG KẾT TỔNG";
+            title = com.esports.manager.util.I18n.get("round.final").toUpperCase();
         } else if (round == totalRounds - 1) {
-            title = "BÁN KẾT";
+            title = com.esports.manager.util.I18n.get("round.semi_final").toUpperCase();
         } else {
-            title = "VÒNG " + round + " (TỨ KẾT)";
+            title = com.esports.manager.util.I18n.get("round.round_%d", round).toUpperCase();
         }
 
         Label lbl = new Label(title);
@@ -224,7 +224,7 @@ public class BracketController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label lblStatus = new Label(match.getStatus() == MatchStatus.LIVE ? "● LIVE" : match.getStatus().getDisplayName());
+        Label lblStatus = new Label(match.getStatus() == MatchStatus.LIVE ? com.esports.manager.util.I18n.get("status.live_dot") : match.getStatus().getDisplayName());
         String statusColor = switch (match.getStatus()) {
             case LIVE -> "#00D4FF";
             case COMPLETED -> "#10B981";
@@ -259,7 +259,7 @@ public class BracketController {
 
         Optional<Team> teamOpt = teamId != null ? ctx.getTeamService().findById(teamId) : Optional.empty();
         String tag = teamOpt.map(Team::getTag).orElse("TBD");
-        String name = teamOpt.map(Team::getName).orElse("Chờ xác định (TBD)");
+        String name = teamOpt.map(Team::getName).orElse(com.esports.manager.util.I18n.get("team.tbd"));
         String accent = teamOpt.map(Team::getAccentColor).orElse("#334155");
 
         Label tagPill = new Label(tag);
@@ -293,10 +293,10 @@ public class BracketController {
         icon.setIconSize(38);
         icon.setStyle("-fx-icon-color: #334155;");
 
-        Label lbl = new Label("Giải đấu này chưa có sơ đồ nhánh đấu.");
+        Label lbl = new Label(com.esports.manager.util.I18n.get("bracket.empty_state"));
         lbl.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 15px; -fx-font-weight: bold;");
 
-        Label sub = new Label("Hãy đảm bảo giải có tối thiểu 4 đội được duyệt và nhấn \"Tạo / Làm mới nhánh đấu\".");
+        Label sub = new Label(com.esports.manager.util.I18n.get("bracket.empty_hint"));
         sub.setStyle("-fx-text-fill: #64748B; -fx-font-size: 12.5px;");
 
         emptyBox.getChildren().addAll(icon, lbl, sub);

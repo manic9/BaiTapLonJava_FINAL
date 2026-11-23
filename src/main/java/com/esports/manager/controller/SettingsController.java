@@ -3,21 +3,30 @@ package com.esports.manager.controller;
 import com.esports.manager.config.AppContext;
 import com.esports.manager.model.AppSettings;
 import com.esports.manager.util.DialogHelper;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 
+import java.io.InputStream;
 import java.util.Optional;
 
 public class SettingsController {
 
     @FXML private TextField txtOrgName;
+    @FXML private StackPane langTogglePane;
+    @FXML private ImageView ivLangFlag;
     @FXML private ComboBox<String> cbCurrency;
     @FXML private ComboBox<Integer> cbDefaultBo;
     @FXML private CheckBox chkAutoAdvance;
@@ -31,6 +40,31 @@ public class SettingsController {
         cbDefaultBo.setItems(FXCollections.observableArrayList(1, 3, 5));
 
         loadCurrentSettings();
+        updateLangButton();
+    }
+
+    private void updateLangButton() {
+        I18n.Language current = I18n.getCurrentLanguage();
+        String flagPath;
+        if (current == I18n.Language.ENGLISH) {
+            flagPath = "/com/esports/manager/images/vietnam.png";
+        } else {
+            flagPath = "/com/esports/manager/images/united-kingdom.png";
+        }
+        InputStream is = getClass().getResourceAsStream(flagPath);
+        if (is != null) {
+            ivLangFlag.setImage(new Image(is));
+        }
+        String tooltipKey = (current == I18n.Language.ENGLISH) ? "lang.tooltip.vi" : "lang.tooltip.en";
+        Tooltip.install(langTogglePane, new Tooltip(I18n.get(tooltipKey)));
+    }
+
+    @FXML
+    public void handleToggleLanguage() {
+        I18n.Language current = I18n.getCurrentLanguage();
+        I18n.Language next = (current == I18n.Language.ENGLISH) ? I18n.Language.VIETNAMESE : I18n.Language.ENGLISH;
+        I18n.setLanguage(next);
+        updateLangButton();
     }
 
     private void loadCurrentSettings() {

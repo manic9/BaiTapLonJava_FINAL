@@ -4,6 +4,7 @@ import com.esports.manager.config.AppContext;
 import com.esports.manager.model.Player;
 import com.esports.manager.model.Team;
 import com.esports.manager.util.DialogHelper;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -37,7 +38,6 @@ public class PlayerController {
     @FXML private TableColumn<Player, String> colNationality;
     @FXML private TableColumn<Player, String> colAge;
     @FXML private TableColumn<Player, String> colKda;
-    @FXML private TableColumn<Player, Void> colActions;
 
     private final AppContext ctx = AppContext.getInstance();
     private FilteredList<Player> filteredData;
@@ -46,18 +46,19 @@ public class PlayerController {
     public void initialize() {
         setupFilters();
         setupTableColumns();
+        setupRowContextMenu();
         bindData();
     }
 
     private void setupFilters() {
         List<Object> teamOptions = new ArrayList<>();
-        teamOptions.add("Tất cả đội tuyển");
+        teamOptions.add(com.esports.manager.util.I18n.get("filter.all_teams"));
         teamOptions.addAll(ctx.getTeamService().getAll());
         cbTeamFilter.setItems(FXCollections.observableArrayList(teamOptions));
         cbTeamFilter.getSelectionModel().selectFirst();
 
         cbRoleFilter.setItems(FXCollections.observableArrayList(
-                "Tất cả vị trí", "Top Lane", "Jungler", "Mid Lane", "AD Carry", "Support",
+                com.esports.manager.util.I18n.get("filter.all_roles"), "Top Lane", "Jungler", "Mid Lane", "AD Carry", "Support",
                 "Duelist", "Initiator", "Controller", "Sentinel", "AWPer", "Rifler"
         ));
         cbRoleFilter.getSelectionModel().selectFirst();
@@ -98,7 +99,7 @@ public class PlayerController {
                     box.getChildren().add(lblIgn);
 
                     if (p.isCaptain()) {
-                        Label capBadge = new Label("CAPTAIN");
+                        Label capBadge = new Label(I18n.get("player.captain"));
                         capBadge.setStyle("-fx-background-color: rgba(245, 158, 11, 0.18); -fx-text-fill: #FBBF24; " +
                                 "-fx-border-color: rgba(245, 158, 11, 0.45); -fx-border-radius: 5px; " +
                                 "-fx-background-radius: 5px; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 1 5;");
@@ -114,7 +115,7 @@ public class PlayerController {
         colTeam.setCellValueFactory(d -> {
             String teamId = d.getValue().getTeamId();
             return new SimpleStringProperty(
-                    ctx.getTeamService().findById(teamId).map(Team::toString).orElse("Tự do (Free Agent)")
+                    ctx.getTeamService().findById(teamId).map(Team::toString).orElse(I18n.get("player.free_agent"))
             );
         });
 
@@ -151,38 +152,43 @@ public class PlayerController {
             }
         });
 
-        colActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnEdit = new Button();
-            private final Button btnDelete = new Button();
-            private final HBox box = new HBox(6, btnEdit, btnDelete);
+    }
 
-            {
-                box.setAlignment(Pos.CENTER_LEFT);
-                btnEdit.setText("✎");
-                btnEdit.setStyle("-fx-text-fill: #00D4FF; -fx-font-size: 13px;");
-                btnEdit.getStyleClass().add("btn-icon");
-                btnEdit.setTooltip(new Tooltip("Chỉnh sửa tuyển thủ"));
+    private void setupRowContextMenu() {
+        MenuItem miEdit = new MenuItem(I18n.get("player.tooltip.edit"));
+        MenuItem miDelete = new MenuItem(I18n.get("player.tooltip.delete"));
 
-                btnDelete.setText("🗑");
-                btnDelete.setStyle("-fx-text-fill: #F87171; -fx-font-size: 13px;");
-                btnDelete.getStyleClass().add("btn-icon");
-                btnDelete.setTooltip(new Tooltip("Xóa tuyển thủ"));
+        ContextMenu rowMenu = new ContextMenu(miEdit, miDelete);
+        rowMenu.getStyleClass().add("context-menu-dark");
 
-                btnEdit.setOnAction(e -> {
-                    Player p = getTableView().getItems().get(getIndex());
-                    showPlayerFormDialog(p);
-                });
+        miEdit.setOnAction(e -> {
+            Player p = playerTable.getSelectionModel().getSelectedItem();
+            if (p != null) showPlayerFormDialog(p);
+        });
 
-                btnDelete.setOnAction(e -> {
-                    Player p = getTableView().getItems().get(getIndex());
-                    handleDeletePlayer(p);
-                });
-            }
+        miDelete.setOnAction(e -> {
+            Player p = playerTable.getSelectionModel().getSelectedItem();
+            if (p != null) handleDeletePlayer(p);
+        });
 
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : box);
+        playerTable.setRowFactory(tv -> {
+            TableRow<Player> row = new TableRow<>();
+            row.setOnContextMenuRequested(event -> {
+                if (!row.isEmpty()) {
+                    rowMenu.show(row, event.getScreenX(), event.getScreenY());
+                }
+            });
+            row.setOnMouseClicked(event -> {
+                if (event.isPrimaryButtonDown() && !event.isShiftDown() && !event.isControlDown()) {
+                    rowMenu.hide();
+                }
+            });
+            return row;
+        });
+
+        playerTable.setOnMouseClicked(event -> {
+            if (event.isPrimaryButtonDown()) {
+                rowMenu.hide();
             }
         });
     }
@@ -211,7 +217,7 @@ public class PlayerController {
                     || (p.getTeamId() != null && p.getTeamId().equals(t.getId()));
 
             boolean matchRole = selectedRole == null
-                    || "Tất cả vị trí".equals(selectedRole)
+                    || I18n.get("filter.all_roles").equals(selectedRole)
                     || (p.getRole() != null && p.getRole().equalsIgnoreCase(selectedRole));
 
             return matchKeyword && matchTeam && matchRole;
@@ -221,7 +227,7 @@ public class PlayerController {
     }
 
     private void updateCountLabel() {
-        lblResultCount.setText("Hiển thị " + filteredData.size() + " tuyển thủ");
+        lblResultCount.setText(com.esports.manager.util.I18n.get("player.count_format", filteredData.size()));
     }
 
     @FXML
@@ -238,14 +244,14 @@ public class PlayerController {
 
     private void handleDeletePlayer(Player p) {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
-                "Xóa tuyển thủ",
-                "Bạn có chắc chắn muốn xóa tuyển thủ \"" + p.getInGameName() + "\" (" + p.getFullName() + ")?")) {
+                I18n.get("player.delete.title"),
+                String.format(I18n.get("player.delete.message"), p.getInGameName(), p.getFullName()))) {
             if (ctx.getPlayerService().delete(p.getId())) {
                 playerTable.refresh();
                 updateCountLabel();
-                ToastManager.showSuccess("Đã xóa tuyển thủ: " + p.getInGameName());
+                ToastManager.showSuccess(String.format(I18n.get("player.toast.deleted"), p.getInGameName()));
             } else {
-                ToastManager.showError("Không thể xóa tuyển thủ này.");
+                ToastManager.showError(I18n.get("player.toast.delete_error"));
             }
         }
     }
@@ -253,11 +259,11 @@ public class PlayerController {
     private void showPlayerFormDialog(Player existing) {
         boolean isEdit = existing != null;
         Dialog<Player> dialog = new Dialog<>();
-        dialog.setTitle(isEdit ? "Chỉnh sửa tuyển thủ" : "Thêm tuyển thủ mới");
-        dialog.setHeaderText(isEdit ? "Cập nhật hồ sơ: " + existing.getInGameName() : "Đăng ký tuyển thủ mới vào hệ thống");
+        dialog.setTitle(isEdit ? I18n.get("player.dialog.edit_title") : I18n.get("player.dialog.create_title"));
+        dialog.setHeaderText(isEdit ? I18n.get("player.dialog.edit_header") + existing.getInGameName() : I18n.get("player.dialog.create_header"));
         DialogHelper.applyDarkTheme(dialog.getDialogPane());
 
-        ButtonType btnSave = new ButtonType(isEdit ? "Lưu thay đổi" : "Thêm tuyển thủ", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnSave = new ButtonType(isEdit ? I18n.get("player.dialog.save_edit") : I18n.get("player.dialog.save_create"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSave, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
@@ -274,10 +280,10 @@ public class PlayerController {
         }
 
         TextField txtIgn = new TextField(isEdit ? existing.getInGameName() : "");
-        txtIgn.setPromptText("VD: Faker, Levi, TenZ...");
+        txtIgn.setPromptText(I18n.get("player.dialog.ign_prompt"));
 
         TextField txtFullName = new TextField(isEdit ? existing.getFullName() : "");
-        txtFullName.setPromptText("Họ và tên đầy đủ");
+        txtFullName.setPromptText(I18n.get("player.dialog.fullname_prompt"));
 
         ComboBox<String> cbRole = new ComboBox<>(FXCollections.observableArrayList(
                 "Top Lane", "Jungler", "Mid Lane", "AD Carry", "Support",
@@ -288,27 +294,27 @@ public class PlayerController {
         cbRole.setMaxWidth(Double.MAX_VALUE);
 
         TextField txtNationality = new TextField(isEdit ? existing.getNationality() : "Vietnam");
-        Spinner<Integer> spAge = new Spinner<>(15, 45, isEdit ? existing.getAge() : 21);
+        Spinner<Integer> spAge = new Spinner<>(15, 45, isEdit ? existing.getAge() : 18);
         spAge.setEditable(true);
         spAge.setMaxWidth(Double.MAX_VALUE);
 
         TextField txtKda = new TextField(isEdit ? String.valueOf(existing.getKdaRatio()) : "3.50");
-        CheckBox chkCaptain = new CheckBox("Đội trưởng (Team Captain)");
+        CheckBox chkCaptain = new CheckBox(I18n.get("player.captain_checkbox"));
         chkCaptain.setSelected(isEdit && existing.isCaptain());
 
-        grid.add(new Label("Đội tuyển *:"), 0, 0);
+        grid.add(new Label(I18n.get("player.dialog.lbl_team")), 0, 0);
         grid.add(cbTeam, 1, 0);
-        grid.add(new Label("In-Game Name *:"), 0, 1);
+        grid.add(new Label(I18n.get("player.dialog.lbl_ign")), 0, 1);
         grid.add(txtIgn, 1, 1);
-        grid.add(new Label("Họ và tên *:"), 0, 2);
+        grid.add(new Label(I18n.get("player.dialog.lbl_fullname")), 0, 2);
         grid.add(txtFullName, 1, 2);
-        grid.add(new Label("Vị trí thi đấu:"), 0, 3);
+        grid.add(new Label(I18n.get("player.dialog.lbl_role")), 0, 3);
         grid.add(cbRole, 1, 3);
-        grid.add(new Label("Quốc tịch:"), 0, 4);
+        grid.add(new Label(I18n.get("player.dialog.lbl_nationality")), 0, 4);
         grid.add(txtNationality, 1, 4);
-        grid.add(new Label("Tuổi:"), 0, 5);
+        grid.add(new Label(I18n.get("player.dialog.lbl_age")), 0, 5);
         grid.add(spAge, 1, 5);
-        grid.add(new Label("Chỉ số KDA:"), 0, 6);
+        grid.add(new Label(I18n.get("player.dialog.lbl_kda")), 0, 6);
         grid.add(txtKda, 1, 6);
         grid.add(chkCaptain, 1, 7);
 
@@ -318,7 +324,7 @@ public class PlayerController {
         saveBtn.getStyleClass().add("btn-primary");
         saveBtn.addEventFilter(ActionEvent.ACTION, ev -> {
             if (cbTeam.getValue() == null || txtIgn.getText().trim().isEmpty() || txtFullName.getText().trim().isEmpty()) {
-                ToastManager.showError("Vui lòng nhập đầy đủ Đội tuyển, IGN và Họ tên!");
+                ToastManager.showError(I18n.get("player.dialog.validation_error"));
                 ev.consume();
                 return;
             }
@@ -326,7 +332,7 @@ public class PlayerController {
                 double kda = Double.parseDouble(txtKda.getText().trim());
                 if (kda < 0) throw new NumberFormatException();
             } catch (NumberFormatException ex) {
-                ToastManager.showError("Chỉ số KDA phải là số không âm (VD: 4.25)!");
+                ToastManager.showError(I18n.get("player.dialog.kda_error"));
                 ev.consume();
             }
         });
@@ -352,7 +358,8 @@ public class PlayerController {
             ctx.getPlayerService().save(player, !isEdit);
             playerTable.refresh();
             updateCountLabel();
-            ToastManager.showSuccess((isEdit ? "Đã cập nhật tuyển thủ: " : "Đã thêm tuyển thủ: ") + player.getInGameName());
+            String msgKey = isEdit ? "player.toast.updated" : "player.toast.created";
+            ToastManager.showSuccess(String.format(I18n.get(msgKey), player.getInGameName()));
         });
     }
 }

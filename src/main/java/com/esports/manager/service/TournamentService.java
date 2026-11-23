@@ -4,6 +4,7 @@ import com.esports.manager.model.PrizeAllocation;
 import com.esports.manager.model.Tournament;
 import com.esports.manager.repository.Repository;
 import javafx.collections.ObservableList;
+import com.esports.manager.util.I18n;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -56,9 +57,9 @@ public class TournamentService {
     private void createDefaultPrizes(Tournament t) {
         double pool = t.getPrizePool();
         if (pool <= 0) return;
-        prizeRepo.save(new PrizeAllocation("PRZ-" + shortId(), t.getId(), "Hạng 1 (Vô địch)", 50.0, pool * 0.50, null, false));
-        prizeRepo.save(new PrizeAllocation("PRZ-" + shortId(), t.getId(), "Hạng 2 (Á quân)", 30.0, pool * 0.30, null, false));
-        prizeRepo.save(new PrizeAllocation("PRZ-" + shortId(), t.getId(), "Hạng 3 (Đồng hạng)", 20.0, pool * 0.20, null, false));
+        prizeRepo.save(new PrizeAllocation("PRZ-" + shortId(), t.getId(), I18n.get("tour.placeone.title"), 50.0, pool * 0.50, null, false));
+        prizeRepo.save(new PrizeAllocation("PRZ-" + shortId(), t.getId(), I18n.get("tour.placetwo.title"), 30.0, pool * 0.30, null, false));
+        prizeRepo.save(new PrizeAllocation("PRZ-" + shortId(), t.getId(), I18n.get("tour.placeother.title"), 20.0, pool * 0.20, null, false));
     }
 
     private String shortId() {

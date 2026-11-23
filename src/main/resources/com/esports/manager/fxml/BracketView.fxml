@@ -13,18 +13,19 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.esports.manager.controller.BracketController">
+      fx:controller="com.esports.manager.controller.BracketController"
+      fx:bundle="messages">
 
     <!-- ==================== CONTROL & CHAMPION BAR ==================== -->
     <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="card">
         <HBox alignment="CENTER_LEFT" spacing="8.0">
             <FontIcon iconColor="#7C5CFC" iconLiteral="fas-trophy" iconSize="15" />
-            <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="Giải đấu:" />
+            <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="%bracket.lbl_tournament" />
         </HBox>
 
-        <ComboBox fx:id="cbTournament" prefWidth="310.0" promptText="Chọn giải đấu để xem nhánh đấu" />
+        <ComboBox fx:id="cbTournament" prefWidth="310.0" promptText="%bracket.prompt_select" />
 
-        <Button onAction="#handleGenerateBracket" styleClass="btn-secondary" text="Tạo / Làm mới nhánh đấu">
+        <Button onAction="#handleGenerateBracket" styleClass="btn-secondary" text="%bracket.btn_generate">
             <graphic><FontIcon iconColor="#00D4FF" iconLiteral="fas-sync-alt" iconSize="12" /></graphic>
         </Button>
 
@@ -34,11 +35,11 @@
         <HBox fx:id="championBanner" alignment="CENTER_LEFT" managed="false" spacing="10.0" visible="false"
               style="-fx-background-color: rgba(245, 158, 11, 0.14); -fx-border-color: rgba(245, 158, 11, 0.45); -fx-border-radius: 10px; -fx-background-radius: 10px; -fx-padding: 7 14;">
             <FontIcon iconColor="#F59E0B" iconLiteral="fas-crown" iconSize="15" />
-            <Label style="-fx-text-fill: #FBBF24; -fx-font-weight: bold; -fx-font-size: 12px;" text="NHÀ VÔ ĐỊCH:" />
+            <Label style="-fx-text-fill: #FBBF24; -fx-font-weight: bold; -fx-font-size: 12px;" text="%bracket.lbl_champion" />
             <Label fx:id="lblChampionName" style="-fx-text-fill: #F8FAFC; -fx-font-weight: bold; -fx-font-size: 13px;" text="TEAM" />
         </HBox>
 
-        <Label style="-fx-text-fill: #64748B; -fx-font-size: 11.5px;" text="Nhấp vào thẻ trận đấu để cập nhật tỉ số" />
+        <Label style="-fx-text-fill: #64748B; -fx-font-size: 11.5px;" text="%bracket.hint_click" />
     </HBox>
 
     <!-- ==================== INTERACTIVE BRACKET CANVAS ==================== -->

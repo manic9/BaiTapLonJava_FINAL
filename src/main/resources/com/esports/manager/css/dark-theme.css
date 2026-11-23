@@ -387,3 +387,202 @@
 .dialog-pane .label {
     -fx-text-fill: -text-primary;
 }
+
+/* ==================== CONTEXT MENU ==================== */
+
+.context-menu-dark {
+    -fx-background-color: #1a1f2e;
+    -fx-border-color: #2d3748;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 4px 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 12, 0, 0, 4);
+}
+
+.context-menu-dark > .context-menu .separator:horizontal {
+    -fx-background-color: #2d3748;
+    -fx-padding: 3px 0;
+}
+
+.context-menu-dark .separator:horizontal {
+    -fx-background-color: #2d3748;
+    -fx-padding: 3px 0;
+}
+
+.context-menu-dark .menu-item {
+    -fx-background-color: transparent;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 24px 8px 16px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.context-menu-dark .menu-item > .label {
+    -fx-text-fill: #ffffff;
+}
+
+.context-menu-dark .menu-item:hover {
+    -fx-background-color: #7c5ce0;
+}
+
+.context-menu-dark .menu-item:hover > .label {
+    -fx-text-fill: #ffffff;
+}
+
+.context-menu-dark .menu-item:armed {
+    -fx-background-color: #6a4bd4;
+}
+
+.context-menu-dark .menu-item:armed > .label {
+    -fx-text-fill: #ffffff;
+}
+
+/* ==================== REFINED CONTROLS ==================== */
+.root {
+    -fx-accent: -accent-primary;
+    -fx-focus-color: -accent-primary;
+    -fx-faint-focus-color: rgba(124, 92, 252, 0.18);
+}
+
+.label { -fx-text-fill: -text-primary; }
+.text-area .content { -fx-background-color: -bg-input; }
+.text-area .text { -fx-fill: -text-primary; }
+.text-field, .text-area, .combo-box, .date-picker, .spinner {
+    -fx-background-insets: 0;
+    -fx-border-width: 1px;
+}
+.text-field:focused, .text-area:focused, .combo-box:focused, .date-picker:focused, .spinner:focused {
+    -fx-border-color: -accent-primary;
+    -fx-effect: dropshadow(gaussian, rgba(124, 92, 252, 0.16), 8, 0, 0, 0);
+}
+.combo-box-base .arrow-button, .date-picker .arrow-button, .spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: -bg-elevated;
+    -fx-background-radius: 0 8px 8px 0;
+}
+.combo-box-base .arrow, .date-picker .arrow, .spinner .increment-arrow, .spinner .decrement-arrow {
+    -fx-background-color: -text-secondary;
+}
+.check-box { -fx-text-fill: -text-primary; -fx-cursor: hand; }
+.check-box .box {
+    -fx-background-color: -bg-input;
+    -fx-border-color: -border-subtle;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+.check-box:selected .mark { -fx-background-color: white; }
+.check-box:selected .box { -fx-background-color: -accent-primary; -fx-border-color: -accent-primary; }
+.tooltip {
+    -fx-background-color: #202A3B;
+    -fx-text-fill: -text-primary;
+    -fx-background-radius: 7px;
+    -fx-padding: 7 10;
+}
+.table-view .placeholder .label { -fx-text-fill: -text-muted; }
+.table-view .column-header .arrow { -fx-background-color: -accent-cyan; }
+.table-view .table-row-cell:filled:focused { -fx-background-insets: 0; }
+.tab-pane .tab-header-area .tab-header-background { -fx-background-color: -bg-panel; }
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 9 16 9 16;
+    -fx-border-color: transparent transparent -border-subtle transparent;
+}
+.tab-pane .tab .tab-label { -fx-text-fill: -text-secondary; -fx-font-weight: 600; }
+.tab-pane .tab:selected { -fx-border-color: transparent transparent -accent-primary transparent; -fx-border-width: 0 0 2px 0; }
+.tab-pane .tab:selected .tab-label { -fx-text-fill: -text-primary; }
+.tab-pane > .tab-content-area { -fx-background-color: -bg-panel; }
+.dialog-pane .button-bar .button { -fx-cursor: hand; }
+.logout-button:hover { -fx-border-color: -status-danger; -fx-text-fill: #F87171; }
+
+/* ==================== LOGIN ==================== */
+.login-root {
+    -fx-background-color: #343537;
+}
+.login-content { -fx-background-color: transparent; }
+.login-brand { -fx-padding: 0 0 2px 0; }
+.login-logo-orbit {
+    -fx-background-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(124, 92, 252, 0.3), 12, 0, 0, 3);
+}
+.login-logo-mark {
+    -fx-background-color: linear-gradient(to bottom right, #4388FF, #08C7E8);
+    -fx-background-radius: 10px;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-border-radius: 10px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 190, 255, 0.3), 10, 0, 0, 2);
+}
+.login-brand-title { -fx-text-fill: #F8FAFC; -fx-font-size: 14px; -fx-font-weight: bold; }
+.login-brand-caption { -fx-text-fill: #A9A2BD; -fx-font-size: 9px; -fx-font-weight: bold; }
+.login-field-row {
+    -fx-background-color: rgba(13, 12, 20, 0.48);
+    -fx-border-color: rgba(167, 139, 250, 0.48);
+    -fx-border-radius: 7px;
+    -fx-background-radius: 7px;
+    -fx-border-width: 1px;
+    -fx-padding: 2px 10px;
+    -fx-pref-height: 40px;
+}
+.login-field-row .text-field, .login-field-row .password-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+    -fx-padding: 5 0;
+    -fx-text-fill: #E4E5E6;
+    -fx-prompt-text-fill: #A2A4A7;
+    -fx-font-size: 12px;
+}
+.login-field-row .text-field:focused, .login-field-row .password-field:focused {
+    -fx-border-color: transparent;
+    -fx-effect: none;
+}
+.login-option-row { -fx-pref-height: 32px; }
+.login-option-label { -fx-text-fill: #D0C9E0; -fx-font-size: 11px; -fx-pref-width: 60px; }
+.login-select {
+    -fx-background-color: rgba(25, 26, 28, 0.26);
+    -fx-border-color: #625B79;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 3 7;
+    -fx-font-size: 11px;
+}
+.login-select .list-cell { -fx-background-color: transparent; -fx-text-fill: #D5D6D8; -fx-padding: 3 4; }
+.login-select .arrow-button { -fx-background-color: #352D4C; -fx-background-radius: 0 6px 6px 0; }
+.login-select .arrow { -fx-background-color: #BFC1C4; }
+.login-actions { -fx-pref-height: 42px; }
+.login-remember { -fx-font-size: 11px; -fx-text-fill: #E4E5E6; }
+.login-remember .box { -fx-pref-width: 16px; -fx-pref-height: 16px; -fx-background-color: #414244; -fx-border-color: #67696B; -fx-border-radius: 50%; -fx-background-radius: 50%; }
+.login-remember:selected .box { -fx-background-color: #7C5CFC; -fx-border-color: #7C5CFC; }
+.login-submit {
+    -fx-background-color: linear-gradient(to bottom right, #8061F5, #6245D7);
+    -fx-border-color: rgba(196, 181, 253, 0.55);
+    -fx-border-radius: 7px;
+    -fx-background-radius: 7px;
+    -fx-text-fill: #F2F2F2;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 20;
+    -fx-cursor: hand;
+}
+.login-submit:hover { -fx-background-color: #8B70FF; -fx-border-color: #DDD6FE; }
+.login-error {
+    -fx-background-color: rgba(120, 35, 35, 0.34);
+    -fx-border-color: rgba(238, 96, 96, 0.55);
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: #FFB6B6;
+    -fx-padding: 6 8;
+    -fx-font-size: 10px;
+    -fx-max-width: 340px;
+}
+.login-activation {
+    -fx-background-color: rgba(20, 21, 23, 0.24);
+    -fx-pref-height: 22px;
+    -fx-padding: 3 6;
+}
+.login-activation .label { -fx-text-fill: #D8D3E3; -fx-font-size: 10px; }
+.login-activation .login-demo { -fx-text-fill: #C4B5FD; -fx-font-weight: bold; }
+.login-links { -fx-pref-height: 22px; -fx-padding: 2 0 0 0; }
+.login-links .label { -fx-text-fill: #B9A8FF; -fx-font-size: 10px; -fx-padding: 0 9; -fx-cursor: hand; }
+.login-links .label:hover { -fx-text-fill: #DDD6FE; }
+.login-link-divider { -fx-background-color: #85878A; -fx-pref-width: 1px; -fx-pref-height: 13px; }
+.login-footer-accent { -fx-background-color: linear-gradient(to right, #6245E8, #A78BFA, #6245E8); -fx-min-height: 4px; -fx-max-height: 4px; }

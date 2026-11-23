@@ -6,6 +6,7 @@ import com.esports.manager.model.Team;
 import com.esports.manager.model.Tournament;
 import com.esports.manager.model.enums.MatchStatus;
 import com.esports.manager.util.DialogHelper;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -45,7 +46,6 @@ public class MatchController {
     @FXML private TableColumn<Match, String> colBestOf;
     @FXML private TableColumn<Match, String> colTime;
     @FXML private TableColumn<Match, MatchStatus> colStatus;
-    @FXML private TableColumn<Match, Void> colActions;
 
     private final AppContext ctx = AppContext.getInstance();
     private FilteredList<Match> filteredData;
@@ -55,18 +55,19 @@ public class MatchController {
     public void initialize() {
         setupFilters();
         setupTableColumns();
+        setupRowContextMenu();
         bindData();
     }
 
     private void setupFilters() {
         List<Object> trnOptions = new ArrayList<>();
-        trnOptions.add("Tất cả giải đấu");
+        trnOptions.add(com.esports.manager.util.I18n.get("filter.all_tournaments"));
         trnOptions.addAll(ctx.getTournamentService().getAll());
         cbTournamentFilter.setItems(FXCollections.observableArrayList(trnOptions));
         cbTournamentFilter.getSelectionModel().selectFirst();
 
         cbStatusFilter.setItems(FXCollections.observableArrayList(
-                "Tất cả trạng thái",
+                com.esports.manager.util.I18n.get("filter.all_statuses"),
                 MatchStatus.SCHEDULED,
                 MatchStatus.LIVE,
                 MatchStatus.COMPLETED
@@ -128,47 +129,49 @@ public class MatchController {
             }
         });
 
-        colActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnScore = new Button("Tỉ số");
-            private final Button btnEdit = new Button();
-            private final Button btnDelete = new Button();
-            private final HBox box = new HBox(6, btnScore, btnEdit, btnDelete);
+    }
 
-            {
-                box.setAlignment(Pos.CENTER_LEFT);
-                btnScore.getStyleClass().add("btn-primary");
-                btnScore.setStyle("-fx-padding: 5 10; -fx-font-size: 11.5px;");
+    private void setupRowContextMenu() {
+        MenuItem miScore = new MenuItem(I18n.get("match.dialog.title"));
+        MenuItem miEdit = new MenuItem("Sửa thông tin trận đấu");
+        MenuItem miDelete = new MenuItem("Xóa trận đấu");
 
-                btnEdit.setText("✎");
-                btnEdit.setStyle("-fx-text-fill: #00D4FF; -fx-font-size: 13px;");
-                btnEdit.getStyleClass().add("btn-icon");
-                btnEdit.setTooltip(new Tooltip("Sửa thông tin trận đấu"));
+        ContextMenu rowMenu = new ContextMenu(miScore, new SeparatorMenuItem(), miEdit, miDelete);
+        rowMenu.getStyleClass().add("context-menu-dark");
 
-                btnDelete.setText("🗑");
-                btnDelete.setStyle("-fx-text-fill: #F87171; -fx-font-size: 13px;");
-                btnDelete.getStyleClass().add("btn-icon");
-                btnDelete.setTooltip(new Tooltip("Xóa trận đấu"));
+        miScore.setOnAction(e -> {
+            Match m = matchTable.getSelectionModel().getSelectedItem();
+            if (m != null) showScoreDialog(m, () -> matchTable.refresh());
+        });
 
-                btnScore.setOnAction(e -> {
-                    Match m = getTableView().getItems().get(getIndex());
-                    showScoreDialog(m, () -> matchTable.refresh());
-                });
+        miEdit.setOnAction(e -> {
+            Match m = matchTable.getSelectionModel().getSelectedItem();
+            if (m != null) showMatchFormDialog(m);
+        });
 
-                btnEdit.setOnAction(e -> {
-                    Match m = getTableView().getItems().get(getIndex());
-                    showMatchFormDialog(m);
-                });
+        miDelete.setOnAction(e -> {
+            Match m = matchTable.getSelectionModel().getSelectedItem();
+            if (m != null) handleDeleteMatch(m);
+        });
 
-                btnDelete.setOnAction(e -> {
-                    Match m = getTableView().getItems().get(getIndex());
-                    handleDeleteMatch(m);
-                });
-            }
+        matchTable.setRowFactory(tv -> {
+            TableRow<Match> row = new TableRow<>();
+            row.setOnContextMenuRequested(event -> {
+                if (!row.isEmpty()) {
+                    rowMenu.show(row, event.getScreenX(), event.getScreenY());
+                }
+            });
+            row.setOnMouseClicked(event -> {
+                if (event.isPrimaryButtonDown() && !event.isShiftDown() && !event.isControlDown()) {
+                    rowMenu.hide();
+                }
+            });
+            return row;
+        });
 
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : box);
+        matchTable.setOnMouseClicked(event -> {
+            if (event.isPrimaryButtonDown()) {
+                rowMenu.hide();
             }
         });
     }
@@ -234,7 +237,7 @@ public class MatchController {
     }
 
     private void updateCountLabel() {
-        lblResultCount.setText("Hiển thị " + filteredData.size() + " trận đấu");
+        lblResultCount.setText(com.esports.manager.util.I18n.get("match.count_format", filteredData.size()));
     }
 
     @FXML
@@ -269,11 +272,11 @@ public class MatchController {
         String nameB = ctx.getTeamService().getTeamNameOrTbd(match.getTeamBId());
 
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Cập nhật kết quả trận đấu");
-        dialog.setHeaderText(match.getRoundName() + " • Thể thức BO" + match.getBestOf());
+        dialog.setTitle(com.esports.manager.util.I18n.get("match.dialog.title"));
+        dialog.setHeaderText(match.getRoundName() + " • BO" + match.getBestOf());
         DialogHelper.applyDarkTheme(dialog.getDialogPane());
 
-        ButtonType btnSave = new ButtonType("Cập nhật kết quả", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnSave = new ButtonType(com.esports.manager.util.I18n.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSave, ButtonType.CANCEL);
 
         VBox content = new VBox(16);
@@ -308,13 +311,13 @@ public class MatchController {
         // Trạng thái trận đấu
         HBox statusRow = new HBox(12);
         statusRow.setAlignment(Pos.CENTER_LEFT);
-        Label lblSt = new Label("Trạng thái trận đấu:");
+        Label lblSt = new Label(com.esports.manager.util.I18n.get("match.dialog.status") + ":");
         ComboBox<MatchStatus> cbStatus = new ComboBox<>(FXCollections.observableArrayList(MatchStatus.values()));
         cbStatus.setValue(match.getStatus());
         cbStatus.setPrefWidth(200);
         statusRow.getChildren().addAll(lblSt, cbStatus);
 
-        Label hint = new Label("Lưu ý: Khi chọn trạng thái \"Hoàn thành\", đội có tỉ số cao hơn sẽ tự động tiến vào vòng tiếp theo.");
+        Label hint = new Label(com.esports.manager.util.I18n.get("match.dialog.hint"));
         hint.setWrapText(true);
         hint.setMaxWidth(400);
         hint.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 11.5px;");
@@ -328,11 +331,11 @@ public class MatchController {
             int sA = spScoreA.getValue();
             int sB = spScoreB.getValue();
             if (cbStatus.getValue() == MatchStatus.COMPLETED && sA == sB) {
-                ToastManager.showError("Trận đấu hoàn thành không thể có tỉ số hòa (" + sA + " - " + sB + ")!");
+                ToastManager.showError(String.format(com.esports.manager.util.I18n.get("match.dialog.draw_error"), sA, sB));
                 ev.consume();
             }
             if (cbStatus.getValue() == MatchStatus.COMPLETED && (match.getTeamAId() == null || match.getTeamBId() == null)) {
-                ToastManager.showError("Chưa đủ 2 đội thi đấu (TBD) để kết thúc trận!");
+                ToastManager.showError(com.esports.manager.util.I18n.get("match.dialog.incomplete_teams"));
                 ev.consume();
             }
         });
@@ -340,7 +343,7 @@ public class MatchController {
         Optional<ButtonType> res = dialog.showAndWait();
         if (res.isPresent() && res.get() == btnSave) {
             ctx.getMatchService().updateMatchResult(match.getId(), spScoreA.getValue(), spScoreB.getValue(), cbStatus.getValue());
-            ToastManager.showSuccess("Đã cập nhật tỉ số: " + nameA + " " + spScoreA.getValue() + " - " + spScoreB.getValue() + " " + nameB);
+            ToastManager.showSuccess(String.format(com.esports.manager.util.I18n.get("match.dialog.updated"), match.getId()));
             if (onUpdated != null) onUpdated.run();
         }
     }
@@ -348,11 +351,11 @@ public class MatchController {
     private void showMatchFormDialog(Match existing) {
         boolean isEdit = existing != null;
         Dialog<Match> dialog = new Dialog<>();
-        dialog.setTitle(isEdit ? "Chỉnh sửa lịch thi đấu" : "Tạo trận đấu mới");
-        dialog.setHeaderText(isEdit ? "Cập nhật thông số trận: " + existing.getId() : "Lên lịch trận đấu mới cho giải");
+        dialog.setTitle(isEdit ? com.esports.manager.util.I18n.get("match.dialog.edit_title") : com.esports.manager.util.I18n.get("match.dialog.create_title"));
+        dialog.setHeaderText(isEdit ? com.esports.manager.util.I18n.get("match.dialog.edit_header") + ": " + existing.getId() : com.esports.manager.util.I18n.get("match.dialog.create_header"));
         DialogHelper.applyDarkTheme(dialog.getDialogPane());
 
-        ButtonType btnSave = new ButtonType("Lưu trận đấu", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnSave = new ButtonType(com.esports.manager.util.I18n.get("match.dialog.save_btn"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSave, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
@@ -398,9 +401,9 @@ public class MatchController {
         grid.add(spRound, 1, 1);
         grid.add(new Label("Tên vòng đấu *:"), 0, 2);
         grid.add(txtRoundName, 1, 2);
-        grid.add(new Label("Đội A:"), 0, 3);
+        grid.add(new Label(com.esports.manager.util.I18n.get("match.dialog.team_a") + ":"), 0, 3);
         grid.add(cbTeamA, 1, 3);
-        grid.add(new Label("Đội B:"), 0, 4);
+        grid.add(new Label(com.esports.manager.util.I18n.get("match.dialog.team_b") + ":"), 0, 4);
         grid.add(cbTeamB, 1, 4);
         grid.add(new Label("Thể thức (BO):"), 0, 5);
         grid.add(cbBestOf, 1, 5);
@@ -421,7 +424,7 @@ public class MatchController {
             }
             if (cbTeamA.getValue() != null && cbTeamB.getValue() != null
                     && cbTeamA.getValue().getId().equals(cbTeamB.getValue().getId())) {
-                ToastManager.showError("Hai đội thi đấu không được trùng nhau!");
+                ToastManager.showError(com.esports.manager.util.I18n.get("match.dialog.same_team_error"));
                 ev.consume();
             }
         });
@@ -451,7 +454,7 @@ public class MatchController {
             ctx.getMatchService().save(m);
             matchTable.refresh();
             updateCountLabel();
-            ToastManager.showSuccess(isEdit ? "Đã cập nhật lịch trận đấu!" : "Đã tạo trận đấu mới!");
+            ToastManager.showSuccess(isEdit ? com.esports.manager.util.I18n.get("match.dialog.updated_msg") : com.esports.manager.util.I18n.get("match.dialog.created_msg"));
         });
     }
 }

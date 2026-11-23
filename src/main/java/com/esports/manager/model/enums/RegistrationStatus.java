@@ -1,21 +1,23 @@
 package com.esports.manager.model.enums;
 
-public enum RegistrationStatus {
-    PENDING("Chờ duyệt", "badge-upcoming"),
-    APPROVED("Đã duyệt", "badge-completed"),
-    REJECTED("Từ chối", "badge-danger");
+import com.esports.manager.util.I18n;
 
-    private final String displayName;
+public enum RegistrationStatus {
+    PENDING("status.registration.pending", "badge-upcoming"),
+    APPROVED("status.registration.approved", "badge-completed"),
+    REJECTED("status.registration.rejected", "badge-danger");
+
+    private final String i18nKey;
     private final String badgeStyle;
 
-    RegistrationStatus(String displayName, String badgeStyle) {
-        this.displayName = displayName;
+    RegistrationStatus(String i18nKey, String badgeStyle) {
+        this.i18nKey = i18nKey;
         this.badgeStyle = badgeStyle;
     }
 
-    public String getDisplayName() { return displayName; }
+    public String getDisplayName() { return I18n.get(i18nKey); }
     public String getBadgeStyle() { return badgeStyle; }
 
     @Override
-    public String toString() { return displayName; }
+    public String toString() { return getDisplayName(); }
 }

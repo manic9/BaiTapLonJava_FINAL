@@ -63,6 +63,15 @@ src/main/java/com/esports/manager/
 └── util/                      # Utilities
 ```
 
+## Đăng nhập quản trị
+
+Ứng dụng mở màn hình đăng nhập trước khi vào khu vực quản trị. Tài khoản demo:
+
+- **Tên đăng nhập**: `admin`
+- **Mật khẩu**: `nexus2026`
+
+Đây là bước đăng nhập mẫu chạy cục bộ, chưa kết nối máy chủ xác thực hay lưu tài khoản an toàn; không dùng làm cơ chế bảo vệ dữ liệu thật.
+
 ## Lưu ý
 
 - Dự án dùng **In-Memory Repository** — không cần database

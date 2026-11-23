@@ -6,6 +6,7 @@ import com.esports.manager.model.Team;
 import com.esports.manager.model.Tournament;
 import com.esports.manager.model.enums.RegistrationStatus;
 import com.esports.manager.util.DialogHelper;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -17,8 +18,14 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +46,10 @@ public class RegistrationController {
     @FXML private TableColumn<Registration, String> colRegisteredAt;
     @FXML private TableColumn<Registration, String> colNotes;
     @FXML private TableColumn<Registration, RegistrationStatus> colStatus;
-    @FXML private TableColumn<Registration, Void> colActions;
+
+    // Language Toggle
+    @FXML private StackPane langTogglePane;
+    @FXML private ImageView ivLangFlag;
 
     private final AppContext ctx = AppContext.getInstance();
     private FilteredList<Registration> filteredData;
@@ -49,18 +59,47 @@ public class RegistrationController {
     public void initialize() {
         setupFilters();
         setupTableColumns();
+        setupRowContextMenu();
         bindData();
+        updateLangButton();
+        I18n.addListener(lang -> updateLangButton());
+    }
+
+    private void updateLangButton() {
+        I18n.Language current = I18n.getCurrentLanguage();
+        String flagPath;
+        String tooltipText;
+        if (current == I18n.Language.ENGLISH) {
+            flagPath = "/com/esports/manager/images/vietnam.png";
+            tooltipText = "Switch to Vietnamese";
+        } else {
+            flagPath = "/com/esports/manager/images/united-kingdom.png";
+            tooltipText = "Chuyển sang tiếng Anh";
+        }
+        InputStream is = getClass().getResourceAsStream(flagPath);
+        if (is != null) {
+            ivLangFlag.setImage(new Image(is));
+        }
+        String tooltipKey = (current == I18n.Language.ENGLISH) ? "lang.tooltip.vi" : "lang.tooltip.en";
+        Tooltip.install(langTogglePane, new Tooltip(I18n.get(tooltipKey)));
+    }
+
+    @FXML
+    public void handleToggleLanguage(MouseEvent event) {
+        I18n.Language current = I18n.getCurrentLanguage();
+        I18n.Language next = (current == I18n.Language.ENGLISH) ? I18n.Language.VIETNAMESE : I18n.Language.ENGLISH;
+        I18n.setLanguage(next);
     }
 
     private void setupFilters() {
         List<Object> trnOptions = new ArrayList<>();
-        trnOptions.add("Tất cả giải đấu");
+        trnOptions.add(com.esports.manager.util.I18n.get("filter.all_tournaments"));
         trnOptions.addAll(ctx.getTournamentService().getAll());
         cbTournamentFilter.setItems(FXCollections.observableArrayList(trnOptions));
         cbTournamentFilter.getSelectionModel().selectFirst();
 
         cbStatusFilter.setItems(FXCollections.observableArrayList(
-                "Tất cả trạng thái",
+                com.esports.manager.util.I18n.get("filter.all_statuses"),
                 RegistrationStatus.PENDING,
                 RegistrationStatus.APPROVED,
                 RegistrationStatus.REJECTED
@@ -134,68 +173,58 @@ public class RegistrationController {
             }
         });
 
-        colActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnApprove = new Button();
-            private final Button btnReject = new Button();
-            private final Button btnEdit = new Button();
-            private final Button btnDelete = new Button();
-            private final HBox box = new HBox(6, btnApprove, btnReject, btnEdit, btnDelete);
+    }
 
-            {
-                box.setAlignment(Pos.CENTER_LEFT);
+    private void setupRowContextMenu() {
+        MenuItem miApprove = new MenuItem("Duyệt");
+        MenuItem miReject = new MenuItem("Từ chối");
+        MenuItem miEdit = new MenuItem("Sửa Seed & Ghi chú");
+        MenuItem miDelete = new MenuItem("Xóa đơn đăng ký");
 
-                btnApprove.setText("✓");
-                btnApprove.setStyle("-fx-text-fill: #10B981; -fx-font-size: 12px;");
-                btnApprove.getStyleClass().add("btn-icon");
-                btnApprove.setTooltip(new Tooltip("Duyệt tham gia giải"));
+        ContextMenu rowMenu = new ContextMenu(miApprove, miReject, new SeparatorMenuItem(), miEdit, miDelete);
+        rowMenu.getStyleClass().add("context-menu-dark");
 
-                btnReject.setText("✗");
-                btnReject.setStyle("-fx-text-fill: #F59E0B; -fx-font-size: 12px;");
-                btnReject.getStyleClass().add("btn-icon");
-                btnReject.setTooltip(new Tooltip("Từ chối hồ sơ"));
+        miApprove.setOnAction(e -> {
+            Registration reg = registrationTable.getSelectionModel().getSelectedItem();
+            if (reg != null) updateRegStatus(reg, RegistrationStatus.APPROVED);
+        });
 
-                btnEdit.setText("✎");
-                btnEdit.setStyle("-fx-text-fill: #00D4FF; -fx-font-size: 12px;");
-                btnEdit.getStyleClass().add("btn-icon");
-                btnEdit.setTooltip(new Tooltip("Sửa Seed & Ghi chú"));
+        miReject.setOnAction(e -> {
+            Registration reg = registrationTable.getSelectionModel().getSelectedItem();
+            if (reg != null) updateRegStatus(reg, RegistrationStatus.REJECTED);
+        });
 
-                btnDelete.setText("🗑");
-                btnDelete.setStyle("-fx-text-fill: #F87171; -fx-font-size: 12px;");
-                btnDelete.getStyleClass().add("btn-icon");
-                btnDelete.setTooltip(new Tooltip("Xóa đơn đăng ký"));
+        miEdit.setOnAction(e -> {
+            Registration reg = registrationTable.getSelectionModel().getSelectedItem();
+            if (reg != null) showEditSeedNotesDialog(reg);
+        });
 
-                btnApprove.setOnAction(e -> {
-                    Registration reg = getTableView().getItems().get(getIndex());
-                    updateRegStatus(reg, RegistrationStatus.APPROVED);
-                });
+        miDelete.setOnAction(e -> {
+            Registration reg = registrationTable.getSelectionModel().getSelectedItem();
+            if (reg != null) handleDeleteRegistration(reg);
+        });
 
-                btnReject.setOnAction(e -> {
-                    Registration reg = getTableView().getItems().get(getIndex());
-                    updateRegStatus(reg, RegistrationStatus.REJECTED);
-                });
-
-                btnEdit.setOnAction(e -> {
-                    Registration reg = getTableView().getItems().get(getIndex());
-                    showEditSeedNotesDialog(reg);
-                });
-
-                btnDelete.setOnAction(e -> {
-                    Registration reg = getTableView().getItems().get(getIndex());
-                    handleDeleteRegistration(reg);
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    Registration reg = getTableView().getItems().get(getIndex());
-                    btnApprove.setDisable(reg.getStatus() == RegistrationStatus.APPROVED);
-                    btnReject.setDisable(reg.getStatus() == RegistrationStatus.REJECTED);
-                    setGraphic(box);
+        registrationTable.setRowFactory(tv -> {
+            TableRow<Registration> row = new TableRow<>();
+            row.setOnContextMenuRequested(event -> {
+                if (!row.isEmpty()) {
+                    Registration reg = row.getItem();
+                    miApprove.setDisable(reg.getStatus() == RegistrationStatus.APPROVED);
+                    miReject.setDisable(reg.getStatus() == RegistrationStatus.REJECTED);
+                    rowMenu.show(row, event.getScreenX(), event.getScreenY());
                 }
+            });
+            row.setOnMouseClicked(event -> {
+                if (event.isPrimaryButtonDown() && !event.isShiftDown() && !event.isControlDown()) {
+                    rowMenu.hide();
+                }
+            });
+            return row;
+        });
+
+        registrationTable.setOnMouseClicked(event -> {
+            if (event.isPrimaryButtonDown()) {
+                rowMenu.hide();
             }
         });
     }
@@ -237,7 +266,7 @@ public class RegistrationController {
     }
 
     private void updateCountLabel() {
-        lblResultCount.setText("Hiển thị " + filteredData.size() + " đơn đăng ký");
+        lblResultCount.setText(com.esports.manager.util.I18n.get("reg.count_format", filteredData.size()));
     }
 
     private void updateRegStatus(Registration reg, RegistrationStatus status) {

@@ -3,6 +3,7 @@ package com.esports.manager.controller;
 import com.esports.manager.config.AppContext;
 import com.esports.manager.model.Team;
 import com.esports.manager.util.DialogHelper;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import com.esports.manager.util.ViewNavigator;
 import javafx.beans.property.SimpleStringProperty;
@@ -34,7 +35,6 @@ public class TeamController {
     @FXML private TableColumn<Team, String> colRoster;
     @FXML private TableColumn<Team, String> colFounded;
     @FXML private TableColumn<Team, String> colEmail;
-    @FXML private TableColumn<Team, Void> colActions;
 
     private final AppContext ctx = AppContext.getInstance();
     private FilteredList<Team> filteredData;
@@ -43,12 +43,13 @@ public class TeamController {
     public void initialize() {
         setupFilters();
         setupTableColumns();
+        setupRowContextMenu();
         bindData();
     }
 
     private void setupFilters() {
         cbRegionFilter.setItems(FXCollections.observableArrayList(
-                "Tất cả khu vực", "Vietnam", "SEA", "Korea", "China", "International"
+                com.esports.manager.util.I18n.get("filter.all_regions"), "Vietnam", "SEA", "Korea", "China", "International"
         ));
         cbRegionFilter.getSelectionModel().selectFirst();
 
@@ -100,7 +101,7 @@ public class TeamController {
 
         colRoster.setCellValueFactory(d -> {
             int count = ctx.getTeamService().getRoster(d.getValue().getId()).size();
-            return new SimpleStringProperty(count + " tuyển thủ");
+            return new SimpleStringProperty(String.format(I18n.get("team.roster_count"), count));
         });
         colRoster.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -118,53 +119,55 @@ public class TeamController {
         colFounded.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().getFoundedYear())));
         colEmail.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getContactEmail()));
 
-        colActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnRoster = new Button("Roster");
-            private final Button btnEdit = new Button();
-            private final Button btnDelete = new Button();
-            private final HBox box = new HBox(6, btnRoster, btnEdit, btnDelete);
+    }
 
-            {
-                box.setAlignment(Pos.CENTER_LEFT);
-                btnRoster.getStyleClass().add("btn-secondary");
-                btnRoster.setStyle("-fx-padding: 5 10; -fx-font-size: 11.5px;");
-                btnRoster.setTooltip(new Tooltip("Xem danh sách tuyển thủ của đội"));
+    private void setupRowContextMenu() {
+        MenuItem miRoster = new MenuItem(I18n.get("team.tooltip.roster"));
+        MenuItem miEdit = new MenuItem(I18n.get("team.tooltip.edit"));
+        MenuItem miDelete = new MenuItem(I18n.get("team.tooltip.delete"));
 
-                btnEdit.setText("✎");
-                btnEdit.setStyle("-fx-text-fill: #00D4FF; -fx-font-size: 13px;");
-                btnEdit.getStyleClass().add("btn-icon");
-                btnEdit.setTooltip(new Tooltip("Chỉnh sửa đội tuyển"));
+        ContextMenu rowMenu = new ContextMenu(miRoster, new SeparatorMenuItem(), miEdit, miDelete);
+        rowMenu.getStyleClass().add("context-menu-dark");
 
-                btnDelete.setText("🗑");
-                btnDelete.setStyle("-fx-text-fill: #F87171; -fx-font-size: 13px;");
-                btnDelete.getStyleClass().add("btn-icon");
-                btnDelete.setTooltip(new Tooltip("Xóa đội tuyển"));
-
-                btnRoster.setOnAction(e -> {
-                    Team team = getTableView().getItems().get(getIndex());
-                    ViewNavigator.<PlayerController>navigate(
-                            "PlayerView.fxml",
-                            "Player Management",
-                            "Đội hình thi đấu (Roster) — " + team.getName(),
-                            ctrl -> ctrl.filterByTeam(team.getId())
-                    );
-                });
-
-                btnEdit.setOnAction(e -> {
-                    Team team = getTableView().getItems().get(getIndex());
-                    showTeamFormDialog(team);
-                });
-
-                btnDelete.setOnAction(e -> {
-                    Team team = getTableView().getItems().get(getIndex());
-                    handleDeleteTeam(team);
-                });
+        miRoster.setOnAction(e -> {
+            Team team = teamTable.getSelectionModel().getSelectedItem();
+            if (team != null) {
+                ViewNavigator.<PlayerController>navigate(
+                        "PlayerView.fxml",
+                        String.format(I18n.get("team.roster_header"), team.getName()),
+                        ctrl -> ctrl.filterByTeam(team.getId())
+                );
             }
+        });
 
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : box);
+        miEdit.setOnAction(e -> {
+            Team team = teamTable.getSelectionModel().getSelectedItem();
+            if (team != null) showTeamFormDialog(team);
+        });
+
+        miDelete.setOnAction(e -> {
+            Team team = teamTable.getSelectionModel().getSelectedItem();
+            if (team != null) handleDeleteTeam(team);
+        });
+
+        teamTable.setRowFactory(tv -> {
+            TableRow<Team> row = new TableRow<>();
+            row.setOnContextMenuRequested(event -> {
+                if (!row.isEmpty()) {
+                    rowMenu.show(row, event.getScreenX(), event.getScreenY());
+                }
+            });
+            row.setOnMouseClicked(event -> {
+                if (event.isPrimaryButtonDown() && !event.isShiftDown() && !event.isControlDown()) {
+                    rowMenu.hide();
+                }
+            });
+            return row;
+        });
+
+        teamTable.setOnMouseClicked(event -> {
+            if (event.isPrimaryButtonDown()) {
+                rowMenu.hide();
             }
         });
     }
@@ -189,7 +192,7 @@ public class TeamController {
                     || (t.getCoach() != null && t.getCoach().toLowerCase().contains(keyword));
 
             boolean matchRegion = region == null
-                    || "Tất cả khu vực".equals(region)
+                    || I18n.get("filter.all_regions").equals(region)
                     || (t.getRegion() != null && t.getRegion().equalsIgnoreCase(region));
 
             return matchKeyword && matchRegion;
@@ -199,7 +202,7 @@ public class TeamController {
     }
 
     private void updateCountLabel() {
-        lblResultCount.setText("Hiển thị " + filteredData.size() + " đội tuyển");
+        lblResultCount.setText(com.esports.manager.util.I18n.get("team.count_format", filteredData.size()));
     }
 
     @FXML
@@ -215,14 +218,14 @@ public class TeamController {
 
     private void handleDeleteTeam(Team team) {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
-                "Xóa đội tuyển",
-                "Bạn có chắc chắn muốn xóa đội tuyển \"" + team.getName() + "\" ([" + team.getTag() + "])?")) {
+                I18n.get("team.delete.title"),
+                String.format(I18n.get("team.delete.message"), team.getName(), team.getTag()))) {
             if (ctx.getTeamService().delete(team.getId())) {
                 teamTable.refresh();
                 updateCountLabel();
-                ToastManager.showSuccess("Đã xóa đội tuyển: " + team.getName());
+                ToastManager.showSuccess(String.format(I18n.get("team.toast.deleted"), team.getName()));
             } else {
-                ToastManager.showError("Không thể xóa đội tuyển này.");
+                ToastManager.showError(I18n.get("team.toast.delete_error"));
             }
         }
     }
@@ -230,11 +233,11 @@ public class TeamController {
     private void showTeamFormDialog(Team existing) {
         boolean isEdit = existing != null;
         Dialog<Team> dialog = new Dialog<>();
-        dialog.setTitle(isEdit ? "Chỉnh sửa đội tuyển" : "Thêm đội tuyển mới");
-        dialog.setHeaderText(isEdit ? "Cập nhật hồ sơ: " + existing.getName() : "Đăng ký hồ sơ đội tuyển Esports mới");
+        dialog.setTitle(isEdit ? I18n.get("team.dialog.edit_title") : I18n.get("team.dialog.create_title"));
+        dialog.setHeaderText(isEdit ? I18n.get("team.dialog.edit_header") + existing.getName() : I18n.get("team.dialog.create_header"));
         DialogHelper.applyDarkTheme(dialog.getDialogPane());
 
-        ButtonType btnSave = new ButtonType(isEdit ? "Lưu thay đổi" : "Thêm đội tuyển", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnSave = new ButtonType(isEdit ? I18n.get("team.dialog.save_edit") : I18n.get("team.dialog.save_create"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSave, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
@@ -243,11 +246,11 @@ public class TeamController {
         grid.setPadding(new Insets(18));
 
         TextField txtName = new TextField(isEdit ? existing.getName() : "");
-        txtName.setPromptText("VD: T1 Esports");
+        txtName.setPromptText(I18n.get("team.dialog.name_prompt"));
         txtName.setPrefWidth(290);
 
         TextField txtTag = new TextField(isEdit ? existing.getTag() : "");
-        txtTag.setPromptText("VD: T1 (tối đa 5 ký tự)");
+        txtTag.setPromptText(I18n.get("team.dialog.tag_prompt"));
 
         ComboBox<String> cbRegion = new ComboBox<>(FXCollections.observableArrayList(
                 "Vietnam", "SEA", "Korea", "China", "North America", "Europe", "International"
@@ -257,7 +260,7 @@ public class TeamController {
         cbRegion.setMaxWidth(Double.MAX_VALUE);
 
         TextField txtCoach = new TextField(isEdit ? existing.getCoach() : "");
-        txtCoach.setPromptText("Tên HLV trưởng");
+        txtCoach.setPromptText(I18n.get("team.dialog.coach_prompt"));
 
         TextField txtEmail = new TextField(isEdit ? existing.getContactEmail() : "");
         txtEmail.setPromptText("manager@team.gg");
@@ -275,19 +278,19 @@ public class TeamController {
         ColorPicker colorPicker = new ColorPicker(initialColor);
         colorPicker.setMaxWidth(Double.MAX_VALUE);
 
-        grid.add(new Label("Tên đội tuyển *:"), 0, 0);
+        grid.add(new Label(I18n.get("team.dialog.lbl_name")), 0, 0);
         grid.add(txtName, 1, 0);
-        grid.add(new Label("Tag viết tắt *:"), 0, 1);
+        grid.add(new Label(I18n.get("team.dialog.lbl_tag")), 0, 1);
         grid.add(txtTag, 1, 1);
-        grid.add(new Label("Khu vực:"), 0, 2);
+        grid.add(new Label(I18n.get("team.dialog.lbl_region")), 0, 2);
         grid.add(cbRegion, 1, 2);
-        grid.add(new Label("Huấn luyện viên:"), 0, 3);
+        grid.add(new Label(I18n.get("team.dialog.lbl_coach")), 0, 3);
         grid.add(txtCoach, 1, 3);
-        grid.add(new Label("Email liên hệ:"), 0, 4);
+        grid.add(new Label(I18n.get("team.dialog.lbl_email")), 0, 4);
         grid.add(txtEmail, 1, 4);
-        grid.add(new Label("Năm thành lập:"), 0, 5);
+        grid.add(new Label(I18n.get("team.dialog.lbl_founded")), 0, 5);
         grid.add(spFounded, 1, 5);
-        grid.add(new Label("Màu nhận diện:"), 0, 6);
+        grid.add(new Label(I18n.get("team.dialog.lbl_color")), 0, 6);
         grid.add(colorPicker, 1, 6);
 
         dialog.getDialogPane().setContent(grid);
@@ -296,12 +299,12 @@ public class TeamController {
         saveBtn.getStyleClass().add("btn-primary");
         saveBtn.addEventFilter(ActionEvent.ACTION, ev -> {
             if (txtName.getText().trim().isEmpty() || txtTag.getText().trim().isEmpty()) {
-                ToastManager.showError("Vui lòng nhập đầy đủ Tên đội tuyển và Tag!");
+                ToastManager.showError(I18n.get("team.dialog.validation_error"));
                 ev.consume();
                 return;
             }
             if (txtTag.getText().trim().length() > 6) {
-                ToastManager.showError("Tag đội tuyển không được vượt quá 6 ký tự!");
+                ToastManager.showError(I18n.get("team.dialog.tag_error"));
                 ev.consume();
             }
         });
@@ -326,7 +329,8 @@ public class TeamController {
             ctx.getTeamService().save(team, !isEdit);
             teamTable.refresh();
             updateCountLabel();
-            ToastManager.showSuccess((isEdit ? "Đã cập nhật đội tuyển: " : "Đã thêm đội tuyển: ") + team.getName());
+            String msgKey = isEdit ? "team.toast.updated" : "team.toast.created";
+            ToastManager.showSuccess(String.format(I18n.get(msgKey), team.getName()));
         });
     }
 

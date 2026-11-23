@@ -8,15 +8,18 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.esports.manager.controller.SettingsController">
+            fx:controller="com.esports.manager.controller.SettingsController"
+            fx:bundle="messages">
 
     <VBox maxWidth="880.0" spacing="20.0">
         <padding>
@@ -27,31 +30,42 @@
         <VBox spacing="16.0" styleClass="card">
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <FontIcon iconColor="#7C5CFC" iconLiteral="fas-sliders-h" iconSize="16" />
-                <Label styleClass="section-title" text="Cấu hình tổ chức &amp; Thể thức mặc định" />
+                <Label styleClass="section-title" text="%settings.card1_title" />
             </HBox>
 
             <Separator style="-fx-opacity: 0.25;" />
 
             <HBox alignment="CENTER_LEFT" spacing="20.0">
                 <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="Tên đơn vị tổ chức (Organization Name)" />
-                    <Label style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;" text="Hiển thị mặc định khi khởi tạo giải đấu mới" />
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="%settings.org_name" />
+                    <Label style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;" text="%settings.org_name_sub" />
                 </VBox>
                 <TextField fx:id="txtOrgName" prefWidth="280.0" />
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="20.0">
                 <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="Đơn vị tiền tệ hiển thị quỹ thưởng" />
-                    <Label style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;" text="Áp dụng cho Dashboard, Giải đấu và Phân bổ giải thưởng" />
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="%settings.lang" />
+                    <Label style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;" text="%settings.lang_sub" />
+                </VBox>
+                <StackPane fx:id="langTogglePane" style="-fx-background-color: #1E293B; -fx-background-radius: 15px; -fx-min-width: 36px; -fx-max-width: 36px; -fx-min-height: 36px; -fx-max-height: 36px; -fx-cursor: hand;"
+                           onMouseClicked="#handleToggleLanguage">
+                    <ImageView fx:id="ivLangFlag" fitWidth="28" fitHeight="28" preserveRatio="true" />
+                </StackPane>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="20.0">
+                <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="%settings.currency" />
+                    <Label style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;" text="%settings.currency_sub" />
                 </VBox>
                 <ComboBox fx:id="cbCurrency" prefWidth="280.0" />
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="20.0">
                 <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="Thể thức trận đấu mặc định (Default Best-Of)" />
-                    <Label style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;" text="Số ván tối đa khi tạo trận mới hoặc sinh nhánh đấu tự động" />
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #F8FAFC;" text="%settings.default_bo" />
+                    <Label style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;" text="%settings.default_bo_sub" />
                 </VBox>
                 <ComboBox fx:id="cbDefaultBo" prefWidth="280.0" />
             </HBox>
@@ -61,19 +75,19 @@
         <VBox spacing="16.0" styleClass="card">
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <FontIcon iconColor="#00D4FF" iconLiteral="fas-cog" iconSize="16" />
-                <Label styleClass="section-title" text="Tự động hóa &amp; An toàn thao tác" />
+                <Label styleClass="section-title" text="%settings.card2_title" />
             </HBox>
 
             <Separator style="-fx-opacity: 0.25;" />
 
             <CheckBox fx:id="chkAutoAdvance" style="-fx-font-weight: 600; -fx-text-fill: #F8FAFC;"
-                      text="Tự động đưa đội thắng vào vòng kế tiếp trên Tournament Bracket khi cập nhật kết quả" />
+                      text="%settings.chk_auto_advance" />
 
             <CheckBox fx:id="chkConfirmDelete" style="-fx-font-weight: 600; -fx-text-fill: #F8FAFC;"
-                      text="Hiển thị hộp thoại xác nhận trước khi xóa giải đấu, đội tuyển, tuyển thủ hoặc trận đấu" />
+                      text="%settings.chk_confirm_delete" />
 
             <HBox alignment="CENTER_RIGHT" spacing="12.0">
-                <Button onAction="#handleSaveSettings" styleClass="btn-primary" text="Lưu cấu hình">
+                <Button onAction="#handleSaveSettings" styleClass="btn-primary" text="%settings.btn_save">
                     <graphic><FontIcon iconColor="WHITE" iconLiteral="fas-save" iconSize="13" /></graphic>
                 </Button>
             </HBox>
@@ -83,16 +97,16 @@
         <VBox spacing="14.0" styleClass="card">
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <FontIcon iconColor="#F59E0B" iconLiteral="fas-database" iconSize="16" />
-                <Label styleClass="section-title" text="Quản lý dữ liệu mẫu (In-Memory Collections)" />
+                <Label styleClass="section-title" text="%settings.card3_title" />
             </HBox>
 
             <Label wrapText="true" style="-fx-text-fill: #94A3B8; -fx-font-size: 12.5px;"
-                   text="Ứng dụng hiện đang lưu trữ toàn bộ dữ liệu trên bộ nhớ RAM thông qua JavaFX ObservableList. Bạn có thể khôi phục toàn bộ dữ liệu mẫu ban đầu (4 giải đấu, 8 đội tuyển, 18 tuyển thủ, nhánh đấu và bảng xếp hạng) bất cứ lúc nào." />
+                   text="%settings.mock_desc" />
 
             <HBox alignment="CENTER_LEFT" spacing="12.0">
-                <Button onAction="#handleResetMockData" styleClass="btn-danger" text="Khôi phục dữ liệu mẫu mặc định" />
+                <Button onAction="#handleResetMockData" styleClass="btn-danger" text="%settings.btn_reset_mock" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Label style="-fx-text-fill: #64748B; -fx-font-size: 11.5px;" text="Nexus Arena v1.0.0 • Java 21 + JavaFX 21" />
+                <Label style="-fx-text-fill: #64748B; -fx-font-size: 11.5px;" text="Ql Tournament v1.0.0 • Java 21 + JavaFX 21" />
             </HBox>
         </VBox>
 

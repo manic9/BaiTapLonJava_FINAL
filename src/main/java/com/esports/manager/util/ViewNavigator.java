@@ -15,28 +15,30 @@ public final class ViewNavigator {
 
     private static StackPane viewport;
     private static Label titleLabel;
-    private static Label subtitleLabel;
 
     private ViewNavigator() {}
 
-    public static void init(StackPane contentViewport, Label lblTitle, Label lblSubtitle) {
+    public static void init(StackPane contentViewport, Label lblTitle) {
         viewport = contentViewport;
         titleLabel = lblTitle;
-        subtitleLabel = lblSubtitle;
     }
 
-    public static void navigate(String fxmlFileName, String title, String subtitle) {
-        navigate(fxmlFileName, title, subtitle, null);
+    public static void updateHeader(String title) {
+        if (titleLabel != null) titleLabel.setText(title);
     }
 
-    public static <T> void navigate(String fxmlFileName, String title, String subtitle, Consumer<T> controllerInit) {
+    public static void navigate(String fxmlFileName, String title) {
+        navigate(fxmlFileName, title, null);
+    }
+
+    public static <T> void navigate(String fxmlFileName, String title, Consumer<T> controllerInit) {
         try {
             URL resource = ViewNavigator.class.getResource("/com/esports/manager/fxml/" + fxmlFileName);
             if (resource == null) {
                 ToastManager.showError("Không tìm thấy giao diện: " + fxmlFileName);
                 return;
             }
-            FXMLLoader loader = new FXMLLoader(resource);
+            FXMLLoader loader = new FXMLLoader(resource, I18n.getResourceBundle());
             Node view = loader.load();
 
             if (controllerInit != null) {
@@ -44,7 +46,6 @@ public final class ViewNavigator {
             }
 
             if (titleLabel != null) titleLabel.setText(title);
-            if (subtitleLabel != null) subtitleLabel.setText(subtitle);
 
             view.setOpacity(0);
             viewport.getChildren().setAll(view);
@@ -54,7 +55,6 @@ public final class ViewNavigator {
             fade.setToValue(1.0);
             fade.play();
         } catch (IOException e) {
-            e.printStackTrace();
             Throwable cause = e.getCause() != null ? e.getCause() : e;
             ToastManager.showError("Lỗi tải giao diện: " + cause.getMessage());
         }

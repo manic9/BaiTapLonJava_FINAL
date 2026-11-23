@@ -7,6 +7,7 @@ import com.esports.manager.model.Tournament;
 import com.esports.manager.model.enums.MatchStatus;
 import com.esports.manager.model.enums.RegistrationStatus;
 import com.esports.manager.model.enums.TournamentStatus;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ViewNavigator;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -70,16 +71,16 @@ public class DashboardController {
         String symbol = ctx.getSettings().getCurrencySymbol();
 
         lblTotalTournaments.setText(String.valueOf(tournaments.size()));
-        lblOngoingTournaments.setText(ongoingCount + " giải đang diễn ra");
+        lblOngoingTournaments.setText(com.esports.manager.util.I18n.get("dashboard.kpi.ongoing_format", ongoingCount));
 
         lblTotalTeams.setText(String.valueOf(teamCount));
-        lblTotalPlayers.setText(playerCount + " tuyển thủ trong roster");
+        lblTotalPlayers.setText(com.esports.manager.util.I18n.get("dashboard.kpi.players_format", playerCount));
 
         lblTotalMatches.setText(String.valueOf(matches.size()));
-        lblLiveMatches.setText(liveCount + " trận đang LIVE");
+        lblLiveMatches.setText(com.esports.manager.util.I18n.get("dashboard.kpi.live_format", liveCount));
 
         lblTotalPrizePool.setText(symbol + currencyFmt.format(totalPool));
-        lblPendingRegs.setText(pendingRegs + " đơn đăng ký chờ duyệt");
+        lblPendingRegs.setText(com.esports.manager.util.I18n.get("dashboard.kpi.pending_format", pendingRegs));
     }
 
     private void renderFeaturedTournaments() {
@@ -122,19 +123,17 @@ public class DashboardController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            Button btnBracket = new Button("Nhánh đấu");
+            Button btnBracket = new Button(com.esports.manager.util.I18n.get("btn.bracket"));
             btnBracket.getStyleClass().add("btn-secondary");
             btnBracket.setOnAction(e -> ViewNavigator.<BracketController>navigate(
-                    "BracketView.fxml", "Tournament Bracket",
-                    "Sơ đồ nhánh đấu — " + t.getName(),
+                    "BracketView.fxml", com.esports.manager.util.I18n.get("page.bracket.title"),
                     ctrl -> ctrl.selectTournament(t.getId())
             ));
 
-            Button btnDetail = new Button("Chi tiết");
+            Button btnDetail = new Button(com.esports.manager.util.I18n.get("btn.details"));
             btnDetail.getStyleClass().add("btn-primary");
             btnDetail.setOnAction(e -> ViewNavigator.<TournamentDetailController>navigate(
-                    "TournamentDetailView.fxml", "Tournament Detail",
-                    "Thông tin vận hành chi tiết giải đấu",
+                    "TournamentDetailView.fxml", t.getName(),
                     ctrl -> ctrl.setTournament(t)
             ));
 
@@ -238,13 +237,11 @@ public class DashboardController {
 
     @FXML
     public void handleViewAllTournaments() {
-        ViewNavigator.navigate("TournamentView.fxml", "Tournament Management",
-                "Tạo mới, chỉnh sửa, lọc và vận hành các giải đấu Esports");
+        ViewNavigator.navigate("TournamentView.fxml", I18n.get("page.tournaments.title"));
     }
 
     @FXML
     public void handleViewAllMatches() {
-        ViewNavigator.navigate("MatchView.fxml", "Match Management",
-                "Quản lý lịch thi đấu, cập nhật tỉ số Bo1/Bo3/Bo5 trực tiếp");
+        ViewNavigator.navigate("MatchView.fxml", I18n.get("page.matches.title"));
     }
 }

@@ -6,6 +6,7 @@ public class AppSettings {
     private int defaultBestOf = 3;
     private boolean autoAdvanceBracket = true;
     private boolean confirmBeforeDelete = true;
+    private String language = "vi";
 
     public String getOrganizationName() { return organizationName; }
     public void setOrganizationName(String organizationName) { this.organizationName = organizationName; }
@@ -21,4 +22,7 @@ public class AppSettings {
 
     public boolean isConfirmBeforeDelete() { return confirmBeforeDelete; }
     public void setConfirmBeforeDelete(boolean confirmBeforeDelete) { this.confirmBeforeDelete = confirmBeforeDelete; }
+
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { this.language = language; }
 }

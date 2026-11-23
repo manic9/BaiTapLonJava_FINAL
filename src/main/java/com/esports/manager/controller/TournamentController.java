@@ -5,6 +5,7 @@ import com.esports.manager.model.Tournament;
 import com.esports.manager.model.enums.BracketFormat;
 import com.esports.manager.model.enums.TournamentStatus;
 import com.esports.manager.util.DialogHelper;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import com.esports.manager.util.ViewNavigator;
 import javafx.beans.property.SimpleStringProperty;
@@ -40,7 +41,6 @@ public class TournamentController {
     @FXML private TableColumn<Tournament, String> colPrize;
     @FXML private TableColumn<Tournament, String> colDates;
     @FXML private TableColumn<Tournament, String> colStatus;
-    @FXML private TableColumn<Tournament, Void> colActions;
 
     private final AppContext ctx = AppContext.getInstance();
     private FilteredList<Tournament> filteredData;
@@ -51,12 +51,13 @@ public class TournamentController {
     public void initialize() {
         setupFilters();
         setupTableColumns();
+        setupRowContextMenu();
         bindData();
     }
 
     private void setupFilters() {
         // Thu thập danh sách tựa game từ dữ liệu mẫu
-        Set<String> games = new LinkedHashSet<>(List.of("Tất cả tựa game", "League of Legends", "VALORANT", "CS:GO", "Dota 2", "FC Online"));
+        Set<String> games = new LinkedHashSet<>(List.of(I18n.get("filter.all_games"), "League of Legends", "VALORANT", "CS:GO", "Dota 2", "FC Online"));
         for (Tournament t : ctx.getTournamentService().getAll()) {
             if (t.getGameTitle() != null && !t.getGameTitle().isBlank()) {
                 games.add(t.getGameTitle());
@@ -66,7 +67,7 @@ public class TournamentController {
         cbGameFilter.getSelectionModel().selectFirst();
 
         List<String> statuses = new ArrayList<>();
-        statuses.add("Tất cả trạng thái");
+        statuses.add(I18n.get("filter.all_statuses"));
         for (TournamentStatus s : TournamentStatus.values()) {
             statuses.add(s.getDisplayName());
         }
@@ -186,64 +187,65 @@ public class TournamentController {
             }
         });
 
-        colActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnDetail = new Button("Chi tiết");
-            private final Button btnBracket = new Button("Nhánh đấu");
-            private final Button btnEdit = new Button("✎");
-            private final Button btnDelete = new Button("🗑");
-            private final HBox box = new HBox(6, btnDetail, btnBracket, btnEdit, btnDelete);
+    }
 
-            {
-                box.setAlignment(Pos.CENTER_LEFT);
-                btnDetail.getStyleClass().add("btn-primary");
-                btnDetail.setStyle("-fx-padding: 4 9; -fx-font-size: 11px;");
-                btnDetail.setTooltip(new Tooltip("Xem thông tin chi tiết giải đấu"));
+    private void setupRowContextMenu() {
+        MenuItem miDetail = new MenuItem(I18n.get("btn.details"));
+        MenuItem miBracket = new MenuItem(I18n.get("btn.bracket"));
+        MenuItem miEdit = new MenuItem(I18n.get("tournament.tooltip.edit"));
+        MenuItem miDelete = new MenuItem(I18n.get("tournament.tooltip.delete"));
 
-                btnBracket.getStyleClass().add("btn-secondary");
-                btnBracket.setStyle("-fx-padding: 4 9; -fx-font-size: 11px;");
-                btnBracket.setTooltip(new Tooltip("Xem sơ đồ nhánh đấu"));
+        ContextMenu rowMenu = new ContextMenu(miDetail, miBracket, new SeparatorMenuItem(), miEdit, miDelete);
+        rowMenu.getStyleClass().add("context-menu-dark");
 
-                btnEdit.setStyle("-fx-text-fill: #00D4FF; -fx-font-size: 12px;");
-                btnEdit.getStyleClass().add("btn-icon");
-                btnEdit.setTooltip(new Tooltip("Chỉnh sửa giải đấu"));
-
-                btnDelete.setStyle("-fx-text-fill: #F87171; -fx-font-size: 12px;");
-                btnDelete.getStyleClass().add("btn-icon");
-                btnDelete.setTooltip(new Tooltip("Xóa giải đấu"));
-
-                btnDetail.setOnAction(e -> {
-                    Tournament t = getTableView().getItems().get(getIndex());
-                    ViewNavigator.<TournamentDetailController>navigate(
-                            "TournamentDetailView.fxml", "Tournament Detail",
-                            "Thông tin vận hành chi tiết giải đấu",
-                            ctrl -> ctrl.setTournament(t)
-                    );
-                });
-
-                btnBracket.setOnAction(e -> {
-                    Tournament t = getTableView().getItems().get(getIndex());
-                    ViewNavigator.<BracketController>navigate(
-                            "BracketView.fxml", "Tournament Bracket",
-                            "Sơ đồ nhánh đấu — " + t.getName(),
-                            ctrl -> ctrl.selectTournament(t.getId())
-                    );
-                });
-
-                btnEdit.setOnAction(e -> {
-                    Tournament t = getTableView().getItems().get(getIndex());
-                    showTournamentFormDialog(t);
-                });
-
-                btnDelete.setOnAction(e -> {
-                    Tournament t = getTableView().getItems().get(getIndex());
-                    handleDeleteTournament(t);
-                });
+        miDetail.setOnAction(e -> {
+            Tournament t = tournamentTable.getSelectionModel().getSelectedItem();
+            if (t != null) {
+                ViewNavigator.<TournamentDetailController>navigate(
+                        "TournamentDetailView.fxml", t.getName(),
+                        ctrl -> ctrl.setTournament(t)
+                );
             }
+        });
 
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : box);
+        miBracket.setOnAction(e -> {
+            Tournament t = tournamentTable.getSelectionModel().getSelectedItem();
+            if (t != null) {
+                ViewNavigator.<BracketController>navigate(
+                        "BracketView.fxml", I18n.get("page.bracket.title"),
+                        ctrl -> ctrl.selectTournament(t.getId())
+                );
+            }
+        });
+
+        miEdit.setOnAction(e -> {
+            Tournament t = tournamentTable.getSelectionModel().getSelectedItem();
+            if (t != null) showTournamentFormDialog(t);
+        });
+
+        miDelete.setOnAction(e -> {
+            Tournament t = tournamentTable.getSelectionModel().getSelectedItem();
+            if (t != null) handleDeleteTournament(t);
+        });
+
+        tournamentTable.setRowFactory(tv -> {
+            TableRow<Tournament> row = new TableRow<>();
+            row.setOnContextMenuRequested(event -> {
+                if (!row.isEmpty()) {
+                    rowMenu.show(row, event.getScreenX(), event.getScreenY());
+                }
+            });
+            row.setOnMouseClicked(event -> {
+                if (event.isPrimaryButtonDown() && !event.isShiftDown() && !event.isControlDown()) {
+                    rowMenu.hide();
+                }
+            });
+            return row;
+        });
+
+        tournamentTable.setOnMouseClicked(event -> {
+            if (event.isPrimaryButtonDown()) {
+                rowMenu.hide();
             }
         });
     }
@@ -269,11 +271,11 @@ public class TournamentController {
                     || (t.getId() != null && t.getId().toLowerCase().contains(keyword));
 
             boolean matchGame = selectedGame == null
-                    || "Tất cả tựa game".equals(selectedGame)
+                    || I18n.get("filter.all_games").equals(selectedGame)
                     || (t.getGameTitle() != null && t.getGameTitle().equalsIgnoreCase(selectedGame));
 
             boolean matchStatus = selectedStatus == null
-                    || "Tất cả trạng thái".equals(selectedStatus)
+                    || I18n.get("filter.all_statuses").equals(selectedStatus)
                     || (t.getStatus() != null && t.getStatus().getDisplayName().equalsIgnoreCase(selectedStatus));
 
             return matchKeyword && matchGame && matchStatus;
@@ -283,7 +285,7 @@ public class TournamentController {
     }
 
     private void updateCountLabel() {
-        lblResultCount.setText(filteredData.size() + " giải đấu");
+        lblResultCount.setText(I18n.get("tournament.count_format", filteredData.size()));
     }
 
     @FXML
@@ -306,14 +308,14 @@ public class TournamentController {
 
     private void handleDeleteTournament(Tournament t) {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
-                "Xóa giải đấu",
-                "Bạn có chắc chắn muốn xóa giải đấu \"" + t.getName() + "\" (#" + t.getId() + ")?")) {
+                I18n.get("tournament.delete.title"),
+                String.format(I18n.get("tournament.delete.message"), t.getName(), t.getId()))) {
             if (ctx.getTournamentService().delete(t.getId())) {
                 tournamentTable.refresh();
                 updateCountLabel();
-                ToastManager.showSuccess("Đã xóa giải đấu: " + t.getName());
+                ToastManager.showSuccess(String.format(I18n.get("tournament.toast.deleted"), t.getName()));
             } else {
-                ToastManager.showError("Không thể xóa giải đấu này.");
+                ToastManager.showError(I18n.get("tournament.toast.delete_error"));
             }
         }
     }
@@ -321,11 +323,11 @@ public class TournamentController {
     private void showTournamentFormDialog(Tournament existing) {
         boolean isEdit = existing != null;
         Dialog<Tournament> dialog = new Dialog<>();
-        dialog.setTitle(isEdit ? "Chỉnh sửa giải đấu" : "Tạo giải đấu mới");
-        dialog.setHeaderText(isEdit ? "Cập nhật giải đấu: " + existing.getName() : "Khởi tạo giải đấu Esports mới");
+        dialog.setTitle(isEdit ? I18n.get("tournament.dialog.edit_title") : I18n.get("tournament.dialog.create_title"));
+        dialog.setHeaderText(isEdit ? I18n.get("tournament.dialog.edit_header") + existing.getName() : I18n.get("tournament.dialog.create_header"));
         DialogHelper.applyDarkTheme(dialog.getDialogPane());
 
-        ButtonType btnSave = new ButtonType(isEdit ? "Lưu thay đổi" : "Tạo giải đấu", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnSave = new ButtonType(isEdit ? I18n.get("tournament.dialog.save_edit") : I18n.get("tournament.dialog.save_create"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSave, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
@@ -334,7 +336,7 @@ public class TournamentController {
         grid.setPadding(new Insets(18));
 
         TextField txtName = new TextField(isEdit ? existing.getName() : "");
-        txtName.setPromptText("VD: Vietnam Championship Series 2026");
+        txtName.setPromptText(I18n.get("tournament.dialog.name_prompt"));
         txtName.setPrefWidth(300);
 
         ComboBox<String> cbGame = new ComboBox<>(FXCollections.observableArrayList(
@@ -345,7 +347,7 @@ public class TournamentController {
         cbGame.setMaxWidth(Double.MAX_VALUE);
 
         TextField txtOrganizer = new TextField(isEdit ? existing.getOrganizer() : "");
-        txtOrganizer.setPromptText("VD: Riot Games / VNG Games");
+        txtOrganizer.setPromptText(I18n.get("tournament.dialog.organizer_prompt"));
 
         ComboBox<BracketFormat> cbFormat = new ComboBox<>(FXCollections.observableArrayList(BracketFormat.values()));
         cbFormat.setValue(isEdit ? existing.getFormat() : BracketFormat.SINGLE_ELIMINATION);
@@ -367,34 +369,34 @@ public class TournamentController {
         dpStart.setMaxWidth(Double.MAX_VALUE);
         dpEnd.setMaxWidth(Double.MAX_VALUE);
 
-        TextField txtLocation = new TextField(isEdit ? existing.getLocation() : "TP. Hồ Chí Minh");
-        txtLocation.setPromptText("Địa điểm tổ chức");
+        TextField txtLocation = new TextField(isEdit ? existing.getLocation() : I18n.get("tournament.dialog.location_default"));
+        txtLocation.setPromptText(I18n.get("tournament.dialog.location_prompt"));
 
         TextArea txtDesc = new TextArea(isEdit && existing.getDescription() != null ? existing.getDescription() : "");
-        txtDesc.setPromptText("Mô tả giải đấu, quy định và thể thức chi tiết...");
+        txtDesc.setPromptText(I18n.get("tournament.dialog.desc_prompt"));
         txtDesc.setPrefRowCount(3);
 
-        grid.add(new Label("Tên giải đấu *:"), 0, 0);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_name")), 0, 0);
         grid.add(txtName, 1, 0);
-        grid.add(new Label("Tựa game *:"), 0, 1);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_game")), 0, 1);
         grid.add(cbGame, 1, 1);
-        grid.add(new Label("Đơn vị tổ chức *:"), 0, 2);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_organizer")), 0, 2);
         grid.add(txtOrganizer, 1, 2);
-        grid.add(new Label("Thể thức thi đấu:"), 0, 3);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_format")), 0, 3);
         grid.add(cbFormat, 1, 3);
-        grid.add(new Label("Trạng thái:"), 0, 4);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_status")), 0, 4);
         grid.add(cbStatus, 1, 4);
-        grid.add(new Label("Số đội tham gia:"), 0, 5);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_teams")), 0, 5);
         grid.add(spMaxTeams, 1, 5);
-        grid.add(new Label("Quỹ thưởng ($):"), 0, 6);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_prize")), 0, 6);
         grid.add(txtPrize, 1, 6);
-        grid.add(new Label("Ngày bắt đầu:"), 0, 7);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_start")), 0, 7);
         grid.add(dpStart, 1, 7);
-        grid.add(new Label("Ngày kết thúc:"), 0, 8);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_end")), 0, 8);
         grid.add(dpEnd, 1, 8);
-        grid.add(new Label("Địa điểm:"), 0, 9);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_location")), 0, 9);
         grid.add(txtLocation, 1, 9);
-        grid.add(new Label("Mô tả:"), 0, 10);
+        grid.add(new Label(I18n.get("tournament.dialog.lbl_desc")), 0, 10);
         grid.add(txtDesc, 1, 10);
 
         dialog.getDialogPane().setContent(grid);
@@ -403,7 +405,7 @@ public class TournamentController {
         saveBtn.getStyleClass().add("btn-primary");
         saveBtn.addEventFilter(ActionEvent.ACTION, ev -> {
             if (txtName.getText().trim().isEmpty() || txtOrganizer.getText().trim().isEmpty()) {
-                ToastManager.showError("Vui lòng điền đầy đủ Tên giải đấu và Đơn vị tổ chức!");
+                ToastManager.showError(I18n.get("tournament.dialog.validation_error"));
                 ev.consume();
                 return;
             }
@@ -411,7 +413,7 @@ public class TournamentController {
             try {
                 prize = Double.parseDouble(txtPrize.getText().trim().replace(",", ""));
             } catch (NumberFormatException e) {
-                ToastManager.showError("Quỹ giải thưởng không hợp lệ!");
+                ToastManager.showError(I18n.get("tournament.dialog.prize_error"));
                 ev.consume();
                 return;
             }
@@ -430,7 +432,7 @@ public class TournamentController {
                 existing.setDescription(txtDesc.getText().trim());
 
                 ctx.getTournamentService().update(existing);
-                ToastManager.showSuccess("Đã cập nhật thông tin giải đấu: " + existing.getName());
+                ToastManager.showSuccess(String.format(I18n.get("tournament.toast.updated"), existing.getName()));
             } else {
                 Tournament newTournament = new Tournament();
                 newTournament.setName(txtName.getText().trim());
@@ -446,7 +448,7 @@ public class TournamentController {
                 newTournament.setDescription(txtDesc.getText().trim());
 
                 ctx.getTournamentService().create(newTournament);
-                ToastManager.showSuccess("Đã tạo giải đấu mới: " + newTournament.getName());
+                ToastManager.showSuccess(String.format(I18n.get("tournament.toast.created"), newTournament.getName()));
             }
 
             tournamentTable.refresh();

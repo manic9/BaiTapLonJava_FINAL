@@ -5,6 +5,7 @@ import com.esports.manager.model.PrizeAllocation;
 import com.esports.manager.model.Team;
 import com.esports.manager.model.Tournament;
 import com.esports.manager.util.DialogHelper;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -42,7 +43,6 @@ public class PrizeController {
     @FXML private TableColumn<PrizeAllocation, String> colAmount;
     @FXML private TableColumn<PrizeAllocation, String> colTeam;
     @FXML private TableColumn<PrizeAllocation, Boolean> colPaid;
-    @FXML private TableColumn<PrizeAllocation, Void> colActions;
 
     private final AppContext ctx = AppContext.getInstance();
     private FilteredList<PrizeAllocation> filteredData;
@@ -52,18 +52,19 @@ public class PrizeController {
     public void initialize() {
         setupFilters();
         setupTableColumns();
+        setupRowContextMenu();
         bindData();
     }
 
     private void setupFilters() {
         List<Object> trnOptions = new ArrayList<>();
-        trnOptions.add("Tất cả giải đấu");
+        trnOptions.add(I18n.get("filter.all_tournaments"));
         trnOptions.addAll(ctx.getTournamentService().getAll());
         cbTournamentFilter.setItems(FXCollections.observableArrayList(trnOptions));
         cbTournamentFilter.getSelectionModel().selectFirst();
 
         cbPaidFilter.setItems(FXCollections.observableArrayList(
-                "Tất cả trạng thái", "Đã giải ngân", "Chờ trao giải"
+                I18n.get("prize.filter.all_statuses"), I18n.get("prize.filter.paid"), I18n.get("prize.filter.pending")
         ));
         cbPaidFilter.getSelectionModel().selectFirst();
 
@@ -116,7 +117,7 @@ public class PrizeController {
         colTeam.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().getTeamId() != null && !d.getValue().getTeamId().isBlank()
                         ? ctx.getTeamService().getTeamNameOrTbd(d.getValue().getTeamId())
-                        : "Chưa xác định"
+                        : I18n.get("prize.unassigned")
         ));
 
         colPaid.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().isPaid()));
@@ -127,66 +128,66 @@ public class PrizeController {
                 if (empty || paid == null) {
                     setGraphic(null);
                 } else {
-                    Label badge = new Label(paid ? "Đã giải ngân" : "Chờ trao giải");
+                    Label badge = new Label(paid ? I18n.get("prize.paid") : I18n.get("prize.pending"));
                     badge.getStyleClass().addAll("badge", paid ? "badge-completed" : "badge-upcoming");
                     setGraphic(badge);
                 }
             }
         });
 
-        colActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnTogglePaid = new Button();
-            private final Button btnEdit = new Button();
-            private final Button btnDelete = new Button();
-            private final HBox box = new HBox(6, btnTogglePaid, btnEdit, btnDelete);
+    }
 
-            {
-                box.setAlignment(Pos.CENTER_LEFT);
-                btnTogglePaid.getStyleClass().add("btn-secondary");
-                btnTogglePaid.setStyle("-fx-padding: 4 9; -fx-font-size: 11px;");
+    private void setupRowContextMenu() {
+        MenuItem miTogglePaid = new MenuItem();
+        MenuItem miEdit = new MenuItem(I18n.get("prize.edit_tooltip"));
+        MenuItem miDelete = new MenuItem(I18n.get("prize.delete_tooltip"));
 
-                btnEdit.setText("✎");
-                btnEdit.setStyle("-fx-text-fill: #00D4FF; -fx-font-size: 12px;");
-                btnEdit.getStyleClass().add("btn-icon");
-                btnEdit.setTooltip(new Tooltip("Chỉnh sửa giải thưởng"));
+        ContextMenu rowMenu = new ContextMenu(miTogglePaid, new SeparatorMenuItem(), miEdit, miDelete);
+        rowMenu.getStyleClass().add("context-menu-dark");
 
-                btnDelete.setText("🗑");
-                btnDelete.setStyle("-fx-text-fill: #F87171; -fx-font-size: 12px;");
-                btnDelete.getStyleClass().add("btn-icon");
-                btnDelete.setTooltip(new Tooltip("Xóa hạng mục thưởng"));
-
-                btnTogglePaid.setOnAction(e -> {
-                    PrizeAllocation p = getTableView().getItems().get(getIndex());
-                    p.setPaid(!p.isPaid());
-                    ctx.getPrizeService().save(p);
-                    prizeTable.refresh();
-                    updateSummaryKpis();
-                    ToastManager.showSuccess(p.isPaid()
-                            ? "Đã xác nhận giải ngân: " + p.getPlacement()
-                            : "Đã chuyển về trạng thái chờ trao giải.");
-                });
-
-                btnEdit.setOnAction(e -> {
-                    PrizeAllocation p = getTableView().getItems().get(getIndex());
-                    showPrizeFormDialog(p);
-                });
-
-                btnDelete.setOnAction(e -> {
-                    PrizeAllocation p = getTableView().getItems().get(getIndex());
-                    handleDeletePrize(p);
-                });
+        miTogglePaid.setOnAction(e -> {
+            PrizeAllocation p = prizeTable.getSelectionModel().getSelectedItem();
+            if (p != null) {
+                p.setPaid(!p.isPaid());
+                ctx.getPrizeService().save(p);
+                prizeTable.refresh();
+                updateSummaryKpis();
+                ToastManager.showSuccess(p.isPaid()
+                        ? String.format(I18n.get("prize.toast.disbursed"), p.getPlacement())
+                        : I18n.get("prize.toast.reverted"));
             }
+        });
 
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    PrizeAllocation p = getTableView().getItems().get(getIndex());
-                    btnTogglePaid.setText(p.isPaid() ? "Hoàn tác" : "Giải ngân");
-                    setGraphic(box);
+        miEdit.setOnAction(e -> {
+            PrizeAllocation p = prizeTable.getSelectionModel().getSelectedItem();
+            if (p != null) showPrizeFormDialog(p);
+        });
+
+        miDelete.setOnAction(e -> {
+            PrizeAllocation p = prizeTable.getSelectionModel().getSelectedItem();
+            if (p != null) handleDeletePrize(p);
+        });
+
+        prizeTable.setRowFactory(tv -> {
+            TableRow<PrizeAllocation> row = new TableRow<>();
+            row.setOnContextMenuRequested(event -> {
+                if (!row.isEmpty()) {
+                    PrizeAllocation p = row.getItem();
+                    miTogglePaid.setText(p.isPaid() ? I18n.get("prize.revoke") : I18n.get("prize.disburse"));
+                    rowMenu.show(row, event.getScreenX(), event.getScreenY());
                 }
+            });
+            row.setOnMouseClicked(event -> {
+                if (event.isPrimaryButtonDown() && !event.isShiftDown() && !event.isControlDown()) {
+                    rowMenu.hide();
+                }
+            });
+            return row;
+        });
+
+        prizeTable.setOnMouseClicked(event -> {
+            if (event.isPrimaryButtonDown()) {
+                rowMenu.hide();
             }
         });
     }
@@ -215,9 +216,9 @@ public class PrizeController {
                     || p.getTournamentId().equals(t.getId());
 
             boolean matchPaid = paidFilter == null
-                    || "Tất cả trạng thái".equals(paidFilter)
-                    || ("Đã giải ngân".equals(paidFilter) && p.isPaid())
-                    || ("Chờ trao giải".equals(paidFilter) && !p.isPaid());
+                    || I18n.get("prize.filter.all_statuses").equals(paidFilter)
+                    || (I18n.get("prize.filter.paid").equals(paidFilter) && p.isPaid())
+                    || (I18n.get("prize.filter.pending").equals(paidFilter) && !p.isPaid());
 
             return matchKw && matchTrn && matchPaid;
         });
@@ -250,12 +251,12 @@ public class PrizeController {
 
     private void handleDeletePrize(PrizeAllocation p) {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
-                "Xóa hạng mục giải thưởng",
-                "Bạn có chắc chắn muốn xóa hạng mục \"" + p.getPlacement() + "\" (" + p.getId() + ")?")) {
+                I18n.get("prize.delete.title"),
+                String.format(I18n.get("prize.delete.message"), p.getPlacement(), p.getId()))) {
             if (ctx.getPrizeService().delete(p.getId())) {
                 prizeTable.refresh();
                 updateSummaryKpis();
-                ToastManager.showSuccess("Đã xóa hạng mục giải thưởng!");
+                ToastManager.showSuccess(I18n.get("prize.toast.deleted"));
             }
         }
     }
@@ -263,11 +264,11 @@ public class PrizeController {
     private void showPrizeFormDialog(PrizeAllocation existing) {
         boolean isEdit = existing != null;
         Dialog<PrizeAllocation> dialog = new Dialog<>();
-        dialog.setTitle(isEdit ? "Chỉnh sửa giải thưởng" : "Thêm hạng mục giải thưởng");
-        dialog.setHeaderText(isEdit ? "Cập nhật: " + existing.getPlacement() : "Thiết lập mức thưởng mới cho giải đấu");
+        dialog.setTitle(isEdit ? I18n.get("prize.dialog.edit_title") : I18n.get("prize.dialog.create_title"));
+        dialog.setHeaderText(isEdit ? I18n.get("prize.dialog.edit_header") + ": " + existing.getPlacement() : I18n.get("prize.dialog.create_header"));
         DialogHelper.applyDarkTheme(dialog.getDialogPane());
 
-        ButtonType btnSave = new ButtonType("Lưu giải thưởng", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnSave = new ButtonType(I18n.get("prize.dialog.save_btn"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSave, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
@@ -283,7 +284,7 @@ public class PrizeController {
             cbTrn.getSelectionModel().selectFirst();
         }
 
-        TextField txtPlacement = new TextField(isEdit ? existing.getPlacement() : "Hạng 1 (Vô địch)");
+        TextField txtPlacement = new TextField(isEdit ? existing.getPlacement() : I18n.get("tour.placeone.title"));
         TextField txtPercent = new TextField(isEdit ? String.valueOf(existing.getPercentage()) : "50");
         TextField txtAmount = new TextField(isEdit ? String.valueOf((int) existing.getAmount()) : "5000");
 
@@ -299,7 +300,7 @@ public class PrizeController {
         });
 
         List<Object> teamChoices = new ArrayList<>();
-        teamChoices.add("Chưa xác định");
+        teamChoices.add(I18n.get("prize.unassigned"));
         teamChoices.addAll(ctx.getTeamService().getAll());
         ComboBox<Object> cbTeam = new ComboBox<>(FXCollections.observableArrayList(teamChoices));
         cbTeam.setPrefWidth(290);
@@ -309,18 +310,18 @@ public class PrizeController {
             cbTeam.getSelectionModel().selectFirst();
         }
 
-        CheckBox chkPaid = new CheckBox("Đã hoàn tất giải ngân tiền thưởng");
+        CheckBox chkPaid = new CheckBox(I18n.get("prize.dialog.paid_checkbox"));
         chkPaid.setSelected(isEdit && existing.isPaid());
 
-        grid.add(new Label("Giải đấu *:"), 0, 0);
+        grid.add(new Label(I18n.get("prize.dialog.tournament_label")), 0, 0);
         grid.add(cbTrn, 1, 0);
-        grid.add(new Label("Thứ hạng *:"), 0, 1);
+        grid.add(new Label(I18n.get("prize.dialog.placement_label")), 0, 1);
         grid.add(txtPlacement, 1, 1);
-        grid.add(new Label("Tỷ lệ (%):"), 0, 2);
+        grid.add(new Label(I18n.get("prize.dialog.percent_label")), 0, 2);
         grid.add(txtPercent, 1, 2);
-        grid.add(new Label("Số tiền thưởng:"), 0, 3);
+        grid.add(new Label(I18n.get("prize.dialog.amount_label")), 0, 3);
         grid.add(txtAmount, 1, 3);
-        grid.add(new Label("Đội nhận giải:"), 0, 4);
+        grid.add(new Label(I18n.get("prize.dialog.team_label")), 0, 4);
         grid.add(cbTeam, 1, 4);
         grid.add(chkPaid, 1, 5);
 
@@ -330,7 +331,7 @@ public class PrizeController {
         saveBtn.getStyleClass().add("btn-primary");
         saveBtn.addEventFilter(ActionEvent.ACTION, ev -> {
             if (cbTrn.getValue() == null || txtPlacement.getText().trim().isEmpty()) {
-                ToastManager.showError("Vui lòng chọn Giải đấu và nhập tên Thứ hạng!");
+                ToastManager.showError(I18n.get("prize.dialog.validation_error"));
                 ev.consume();
                 return;
             }
@@ -339,7 +340,7 @@ public class PrizeController {
                 double amt = Double.parseDouble(txtAmount.getText().trim());
                 if (pct < 0 || amt < 0) throw new NumberFormatException();
             } catch (NumberFormatException ex) {
-                ToastManager.showError("Tỷ lệ phần trăm và giá trị thưởng phải là số hợp lệ (>= 0)!");
+                ToastManager.showError(I18n.get("prize.dialog.number_error"));
                 ev.consume();
             }
         });
@@ -363,7 +364,7 @@ public class PrizeController {
             ctx.getPrizeService().save(p);
             prizeTable.refresh();
             updateSummaryKpis();
-            ToastManager.showSuccess(isEdit ? "Đã cập nhật hạng mục thưởng!" : "Đã thêm hạng mục thưởng mới!");
+            ToastManager.showSuccess(isEdit ? I18n.get("prize.dialog.updated_msg") : I18n.get("prize.dialog.created_msg"));
         });
     }
 }

@@ -2,10 +2,12 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
@@ -31,7 +33,7 @@
                         <FontIcon iconColor="WHITE" iconLiteral="fas-trophy" iconSize="18" />
                     </StackPane>
                     <VBox spacing="1.0">
-                        <Label styleClass="brand-title" text="NEXUS ARENA" />
+                        <Label styleClass="brand-title" text="QL ESPORTS" />
                         <Label styleClass="brand-subtitle" text="ESPORTS MANAGER PRO" />
                     </VBox>
                 </HBox>
@@ -40,52 +42,64 @@
 
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
                     <VBox spacing="4.0">
-                        <Label styleClass="sidebar-section-label" text="TỔNG QUAN" />
-                        <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleNavDashboard" styleClass="nav-button" text="Dashboard">
+                        <Label fx:id="lblSectionOverview" styleClass="sidebar-section-label" text="TỔNG QUAN" />
+                        <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleNavDashboard" styleClass="nav-button" text="Tổng quan">
                             <graphic><FontIcon iconLiteral="fas-chart-line" /></graphic>
                         </Button>
 
-                        <Label styleClass="sidebar-section-label" text="QUẢN LÝ GIẢI ĐẤU" />
-                        <Button fx:id="btnTournaments" maxWidth="Infinity" onAction="#handleNavTournaments" styleClass="nav-button" text="Tournaments">
+                        <Label fx:id="lblSectionTournaments" styleClass="sidebar-section-label" text="QUẢN LÝ GIẢI ĐẤU" />
+                        <Button fx:id="btnTournaments" maxWidth="Infinity" onAction="#handleNavTournaments" styleClass="nav-button" text="Quản lý giải đấu">
                             <graphic><FontIcon iconLiteral="fas-trophy" /></graphic>
                         </Button>
-                        <Button fx:id="btnRegistrations" maxWidth="Infinity" onAction="#handleNavRegistrations" styleClass="nav-button" text="Registrations">
+                        <Button fx:id="btnRegistrations" maxWidth="Infinity" onAction="#handleNavRegistrations" styleClass="nav-button" text="Hồ sơ đăng ký">
                             <graphic><FontIcon iconLiteral="fas-clipboard-check" /></graphic>
                         </Button>
-                        <Button fx:id="btnMatches" maxWidth="Infinity" onAction="#handleNavMatches" styleClass="nav-button" text="Match Management">
+                        <Button fx:id="btnMatches" maxWidth="Infinity" onAction="#handleNavMatches" styleClass="nav-button" text="Quản lý trận đấu">
                             <graphic><FontIcon iconLiteral="fas-gamepad" /></graphic>
                         </Button>
-                        <Button fx:id="btnBracket" maxWidth="Infinity" onAction="#handleNavBracket" styleClass="nav-button" text="Tournament Bracket">
+                        <Button fx:id="btnBracket" maxWidth="Infinity" onAction="#handleNavBracket" styleClass="nav-button" text="Sơ đồ nhánh đấu">
                             <graphic><FontIcon iconLiteral="fas-sitemap" /></graphic>
                         </Button>
-                        <Button fx:id="btnStandings" maxWidth="Infinity" onAction="#handleNavStandings" styleClass="nav-button" text="Standings">
+                        <Button fx:id="btnStandings" maxWidth="Infinity" onAction="#handleNavStandings" styleClass="nav-button" text="Bảng xếp hạng">
                             <graphic><FontIcon iconLiteral="fas-list-ol" /></graphic>
                         </Button>
 
-                        <Label styleClass="sidebar-section-label" text="ĐỘI TUYỂN &amp; TUYỂN THỦ" />
-                        <Button fx:id="btnTeams" maxWidth="Infinity" onAction="#handleNavTeams" styleClass="nav-button" text="Team Management">
+                        <Label fx:id="lblSectionTeams" styleClass="sidebar-section-label" text="ĐỘI TUYỂN &amp; TUYỂN THỦ" />
+                        <Button fx:id="btnTeams" maxWidth="Infinity" onAction="#handleNavTeams" styleClass="nav-button" text="Quản lý đội tuyển">
                             <graphic><FontIcon iconLiteral="fas-shield-alt" /></graphic>
                         </Button>
-                        <Button fx:id="btnPlayers" maxWidth="Infinity" onAction="#handleNavPlayers" styleClass="nav-button" text="Player Management">
+                        <Button fx:id="btnPlayers" maxWidth="Infinity" onAction="#handleNavPlayers" styleClass="nav-button" text="Quản lý tuyển thủ">
                             <graphic><FontIcon iconLiteral="fas-users" /></graphic>
                         </Button>
 
-                        <Label styleClass="sidebar-section-label" text="TÀI CHÍNH &amp; HỆ THỐNG" />
-                        <Button fx:id="btnPrizes" maxWidth="Infinity" onAction="#handleNavPrizes" styleClass="nav-button" text="Prize Management">
+                        <Label fx:id="lblSectionSystem" styleClass="sidebar-section-label" text="TÀI CHÍNH &amp; HỆ THỐNG" />
+                        <Button fx:id="btnPrizes" maxWidth="Infinity" onAction="#handleNavPrizes" styleClass="nav-button" text="Cơ cấu giải thưởng">
                             <graphic><FontIcon iconLiteral="fas-coins" /></graphic>
                         </Button>
-                        <Button fx:id="btnSettings" maxWidth="Infinity" onAction="#handleNavSettings" styleClass="nav-button" text="Settings">
+                        <Button fx:id="btnSettings" maxWidth="Infinity" onAction="#handleNavSettings" styleClass="nav-button" text="Cài đặt hệ thống">
                             <graphic><FontIcon iconLiteral="fas-cog" /></graphic>
                         </Button>
                     </VBox>
                 </ScrollPane>
 
-                <!-- Admin Status Footer -->
+                <!-- ==================== LANGUAGE TOGGLE ==================== -->
+                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="card-elevated"
+                      style="-fx-padding: 7 10; -fx-background-color: #121722; -fx-border-color: #1E293B; -fx-border-radius: 10px; -fx-background-radius: 10px;">
+                    <FontIcon iconColor="#A78BFA" iconLiteral="fas-globe" iconSize="15" />
+                    <Label fx:id="lblLanguageLabel" style="-fx-text-fill: #94A3B8; -fx-font-weight: 600; -fx-font-size: 11.5px;" text="Ngôn ngữ:" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <StackPane fx:id="langTogglePane" style="-fx-background-color: #1E293B; -fx-background-radius: 15px; -fx-min-width: 30px; -fx-max-width: 30px; -fx-min-height: 30px; -fx-max-height: 30px; -fx-cursor: hand;"
+                               onMouseClicked="#handleToggleLanguage">
+                        <ImageView fx:id="ivLangFlag" fitWidth="24" fitHeight="24" preserveRatio="true" />
+                    </StackPane>
+                </HBox>
+
+                <!-- ==================== ADMIN STATUS FOOTER ==================== -->
                 <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="card-elevated">
                     <FontIcon iconColor="#00D4FF" iconLiteral="fas-user-shield" iconSize="16" />
                     <VBox>
-                        <Label style="-fx-font-weight: bold; -fx-font-size: 12px;" text="Tournament Admin" />
-                        <Label style="-fx-text-fill: #10B981; -fx-font-size: 11px;" text="● In-Memory Mode" />
+                        <Label fx:id="lblAdminRole" style="-fx-font-weight: bold; -fx-font-size: 12px;" text="Tournament Admin" />
+                        <Label fx:id="lblAdminMode" style="-fx-text-fill: #10B981; -fx-font-size: 11px;" text="● In-Memory Mode" />
                     </VBox>
                 </HBox>
             </VBox>
@@ -96,10 +110,7 @@
             <BorderPane>
                 <top>
                     <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="topbar">
-                        <VBox spacing="2.0">
-                            <Label fx:id="lblPageTitle" styleClass="page-title" text="Dashboard" />
-                            <Label fx:id="lblPageSubtitle" styleClass="page-subtitle" text="Tổng quan hệ thống giải đấu, đội tuyển và lịch thi đấu" />
-                        </VBox>
+                        <Label fx:id="lblPageTitle" styleClass="page-title" text="Dashboard" />
 
                         <Region HBox.hgrow="ALWAYS" />
 
@@ -111,8 +122,11 @@
                                        style="-fx-background-color: transparent; -fx-border-color: transparent;" />
                         </HBox>
 
-                        <Button onAction="#handleQuickCreateTournament" styleClass="btn-primary" text="+ Tạo Giải Đấu">
+                        <Button fx:id="btnQuickCreate" onAction="#handleQuickCreateTournament" styleClass="btn-primary" text="+ Tạo Giải Đấu">
                             <graphic><FontIcon iconColor="WHITE" iconLiteral="fas-plus" iconSize="12" /></graphic>
+                        </Button>
+                        <Button onAction="#handleLogout" styleClass="btn-secondary logout-button" text="Đăng xuất">
+                            <graphic><FontIcon iconColor="#F87171" iconLiteral="fas-sign-out-alt" iconSize="13" /></graphic>
                         </Button>
                     </HBox>
                 </top>

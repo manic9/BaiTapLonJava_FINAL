@@ -13,29 +13,30 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.esports.manager.controller.PlayerController">
+      fx:controller="com.esports.manager.controller.PlayerController"
+      fx:bundle="messages">
 
     <!-- ==================== FILTER & ACTION BAR ==================== -->
     <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="card">
         <HBox alignment="CENTER_LEFT" spacing="8.0"
               style="-fx-background-color: #0E131D; -fx-border-color: #1E293B; -fx-border-radius: 9px; -fx-background-radius: 9px; -fx-padding: 2 10 2 12;">
             <FontIcon iconColor="#64748B" iconLiteral="fas-search" iconSize="13" />
-            <TextField fx:id="txtSearch" prefWidth="235.0" promptText="Tìm IGN, họ tên, quốc tịch..."
+            <TextField fx:id="txtSearch" prefWidth="235.0" promptText="%player.search_prompt"
                        style="-fx-background-color: transparent; -fx-border-color: transparent;" />
         </HBox>
 
-        <ComboBox fx:id="cbTeamFilter" prefWidth="215.0" promptText="Tất cả đội tuyển" />
-        <ComboBox fx:id="cbRoleFilter" prefWidth="170.0" promptText="Tất cả vị trí" />
+        <ComboBox fx:id="cbTeamFilter" prefWidth="215.0" promptText="%filter.all_teams" />
+        <ComboBox fx:id="cbRoleFilter" prefWidth="170.0" promptText="%filter.all_roles" />
 
-        <Button onAction="#handleResetFilters" styleClass="btn-secondary" text="Đặt lại">
+        <Button onAction="#handleResetFilters" styleClass="btn-secondary" text="%btn.reset">
             <graphic><FontIcon iconColor="#94A3B8" iconLiteral="fas-redo" iconSize="12" /></graphic>
         </Button>
 
         <Region HBox.hgrow="ALWAYS" />
 
-        <Label fx:id="lblResultCount" style="-fx-text-fill: #94A3B8; -fx-font-weight: 600;" text="0 tuyển thủ" />
+        <Label fx:id="lblResultCount" style="-fx-text-fill: #94A3B8; -fx-font-weight: 600;" text="0" />
 
-        <Button onAction="#handleCreatePlayer" styleClass="btn-primary" text="Thêm Tuyển Thủ">
+        <Button onAction="#handleCreatePlayer" styleClass="btn-primary" text="%player.btn_create">
             <graphic><FontIcon iconColor="WHITE" iconLiteral="fas-user-plus" iconSize="12" /></graphic>
         </Button>
     </HBox>
@@ -43,15 +44,14 @@
     <!-- ==================== PLAYERS DATA TABLE ==================== -->
     <TableView fx:id="playerTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colId" prefWidth="100.0" text="MÃ" />
-            <TableColumn fx:id="colIgn" prefWidth="195.0" text="IN-GAME NAME (IGN)" />
-            <TableColumn fx:id="colFullName" prefWidth="185.0" text="HỌ VÀ TÊN" />
-            <TableColumn fx:id="colTeam" prefWidth="195.0" text="ĐỘI TUYỂN" />
-            <TableColumn fx:id="colRole" prefWidth="135.0" text="VỊ TRÍ" />
-            <TableColumn fx:id="colNationality" prefWidth="115.0" text="QUỐC TỊCH" />
-            <TableColumn fx:id="colAge" prefWidth="75.0" text="TUỔI" />
-            <TableColumn fx:id="colKda" prefWidth="105.0" text="KDA RATIO" />
-            <TableColumn fx:id="colActions" prefWidth="120.0" text="THAO TÁC" />
+            <TableColumn fx:id="colId" prefWidth="100.0" text="%col.player_id" />
+            <TableColumn fx:id="colIgn" prefWidth="195.0" text="%col.ign" />
+            <TableColumn fx:id="colFullName" prefWidth="185.0" text="%col.full_name" />
+            <TableColumn fx:id="colTeam" prefWidth="195.0" text="%col.team" />
+            <TableColumn fx:id="colRole" prefWidth="135.0" text="%col.role" />
+            <TableColumn fx:id="colNationality" prefWidth="115.0" text="%col.nationality" />
+            <TableColumn fx:id="colAge" prefWidth="75.0" text="%col.age" />
+            <TableColumn fx:id="colKda" prefWidth="105.0" text="%col.kda" />
         </columns>
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

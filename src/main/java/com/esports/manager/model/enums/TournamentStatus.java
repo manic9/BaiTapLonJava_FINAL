@@ -1,22 +1,24 @@
 package com.esports.manager.model.enums;
 
-public enum TournamentStatus {
-    UPCOMING("Sắp diễn ra", "badge-upcoming"),
-    ONGOING("Đang diễn ra", "badge-ongoing"),
-    COMPLETED("Đã kết thúc", "badge-completed"),
-    CANCELLED("Đã hủy", "badge-danger");
+import com.esports.manager.util.I18n;
 
-    private final String displayName;
+public enum TournamentStatus {
+    UPCOMING("status.tournament.upcoming", "badge-upcoming"),
+    ONGOING("status.tournament.ongoing", "badge-ongoing"),
+    COMPLETED("status.tournament.completed", "badge-completed"),
+    CANCELLED("status.tournament.cancelled", "badge-danger");
+
+    private final String i18nKey;
     private final String badgeStyle;
 
-    TournamentStatus(String displayName, String badgeStyle) {
-        this.displayName = displayName;
+    TournamentStatus(String i18nKey, String badgeStyle) {
+        this.i18nKey = i18nKey;
         this.badgeStyle = badgeStyle;
     }
 
-    public String getDisplayName() { return displayName; }
+    public String getDisplayName() { return I18n.get(i18nKey); }
     public String getBadgeStyle() { return badgeStyle; }
 
     @Override
-    public String toString() { return displayName; }
+    public String toString() { return getDisplayName(); }
 }
