@@ -13,8 +13,7 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.esports.manager.controller.PlayerController"
-      fx:bundle="messages">
+      fx:controller="com.esports.manager.controller.PlayerController">
 
     <!-- ==================== FILTER & ACTION BAR ==================== -->
     <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="card">

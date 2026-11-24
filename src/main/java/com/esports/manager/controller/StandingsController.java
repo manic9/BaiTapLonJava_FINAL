@@ -4,6 +4,7 @@ import com.esports.manager.config.AppContext;
 import com.esports.manager.model.StandingEntry;
 import com.esports.manager.model.Team;
 import com.esports.manager.model.Tournament;
+import com.esports.manager.util.I18n;
 import com.esports.manager.util.ToastManager;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -201,6 +202,6 @@ public class StandingsController {
         if (selected == null) return;
         ctx.getStandingsService().recalculate(selected.getId());
         loadStandings(selected.getId());
-        ToastManager.showSuccess("Đã cập nhật lại bảng xếp hạng cho " + selected.getName());
+        ToastManager.showSuccess(I18n.get("standings.toast.recalculated", selected.getName()));
     }
 }

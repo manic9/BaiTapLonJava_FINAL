@@ -13,8 +13,7 @@
 
 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.esports.manager.controller.DashboardController"
-            fx:bundle="messages">
+            fx:controller="com.esports.manager.controller.DashboardController">
 
     <VBox spacing="20.0">
         <padding>

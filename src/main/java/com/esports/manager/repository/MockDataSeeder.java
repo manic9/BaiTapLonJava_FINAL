@@ -24,6 +24,8 @@ public final class MockDataSeeder {
         Team t6 = new Team("TEAM-06", "Team Secret VN", "TS", "SEA", "Nixwater", "vn@teamsecret.gg", 2020, "#EC4899");
         Team t7 = new Team("TEAM-07", "Saigon Buffalo", "SGB", "Vietnam", "Ren", "admin@sgb.vn", 2019, "#F97316");
         Team t8 = new Team("TEAM-08", "Rapid Lofi", "RLF", "Vietnam", "Haruto", "team@rapidlofi.vn", 2022, "#38BDF8");
+        t3.setGameTitle("VALORANT");
+        t8.setGameTitle("VALORANT");
 
         ctx.getTeamRepo().save(t1);
         ctx.getTeamRepo().save(t2);

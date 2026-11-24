@@ -4,7 +4,9 @@ import com.esports.manager.model.*;
 import com.esports.manager.repository.InMemoryRepository;
 import com.esports.manager.repository.MockDataSeeder;
 import com.esports.manager.repository.Repository;
+import com.esports.manager.repository.sqlserver.SqlServerTournamentRepository;
 import com.esports.manager.service.*;
+import com.esports.manager.service.AuthenticationService;
 
 public final class AppContext {
 
@@ -12,7 +14,13 @@ public final class AppContext {
 
     private final AppSettings settings = new AppSettings();
 
-    private final Repository<Tournament> tournamentRepo = new InMemoryRepository<>();
+    private final DatabaseConfig databaseConfig;
+    private final DatabaseConnection databaseConnection;
+    private final TransactionManager transactionManager;
+    private final AuthenticationService authenticationService;
+    private DatabaseConnection.ConnectionStatus initialDbStatus;
+
+    private final Repository<Tournament> tournamentRepo;
     private final Repository<Team> teamRepo = new InMemoryRepository<>();
     private final Repository<Player> playerRepo = new InMemoryRepository<>();
     private final Repository<Registration> registrationRepo = new InMemoryRepository<>();
@@ -33,7 +41,26 @@ public final class AppContext {
 
     private boolean initialized = false;
 
-    private AppContext() {}
+    private AppContext() {
+        this.databaseConfig = DatabaseConfig.load();
+        this.databaseConnection = new DatabaseConnection(this.databaseConfig);
+        this.transactionManager = new TransactionManager(this.databaseConnection);
+        this.authenticationService = new AuthenticationService(this.databaseConnection);
+        DatabaseConnection.ConnectionStatus status = this.databaseConnection.testConnection();
+        Repository<Tournament> repository;
+        if (status.connected()) {
+            try {
+                repository = new SqlServerTournamentRepository(databaseConnection, transactionManager);
+            } catch (RuntimeException e) {
+                status = new DatabaseConnection.ConnectionStatus(false, e.getMessage(), 0);
+                repository = new InMemoryRepository<>();
+            }
+        } else {
+            repository = new InMemoryRepository<>();
+        }
+        this.initialDbStatus = status;
+        this.tournamentRepo = repository;
+    }
 
     public static AppContext getInstance() {
         return INSTANCE;
@@ -68,6 +95,12 @@ public final class AppContext {
         MockDataSeeder.seed(this);
         activityService.log("SYSTEM", "Đã khôi phục toàn bộ dữ liệu mẫu về trạng thái mặc định.");
     }
+
+    public DatabaseConfig getDatabaseConfig() { return databaseConfig; }
+    public DatabaseConnection getDatabaseConnection() { return databaseConnection; }
+    public TransactionManager getTransactionManager() { return transactionManager; }
+    public AuthenticationService getAuthenticationService() { return authenticationService; }
+    public DatabaseConnection.ConnectionStatus getInitialDbStatus() { return initialDbStatus; }
 
     public AppSettings getSettings() { return settings; }
     public Repository<Tournament> getTournamentRepo() { return tournamentRepo; }

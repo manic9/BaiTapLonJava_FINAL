@@ -13,8 +13,7 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.esports.manager.controller.TeamController"
-      fx:bundle="messages">
+      fx:controller="com.esports.manager.controller.TeamController">
 
     <!-- ==================== FILTER & ACTION BAR ==================== -->
     <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="card">
@@ -44,6 +43,7 @@
     <TableView fx:id="teamTable" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="colId" prefWidth="105.0" text="%col.team_id" />
+            <TableColumn fx:id="colGame" prefWidth="170.0" text="%col.game" />
             <TableColumn fx:id="colTag" prefWidth="90.0" text="%col.tag" />
             <TableColumn fx:id="colName" prefWidth="220.0" text="%col.team_name" />
             <TableColumn fx:id="colRegion" prefWidth="120.0" text="%col.region" />

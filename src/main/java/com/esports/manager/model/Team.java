@@ -11,6 +11,7 @@ public class Team implements Identifiable {
     private String contactEmail;
     private int foundedYear;
     private String accentColor;
+    private String gameTitle = "League of Legends";
 
     public Team() {
         this.id = "TEAM-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -53,6 +54,9 @@ public class Team implements Identifiable {
 
     public String getAccentColor() { return accentColor; }
     public void setAccentColor(String accentColor) { this.accentColor = accentColor; }
+
+    public String getGameTitle() { return gameTitle; }
+    public void setGameTitle(String gameTitle) { this.gameTitle = gameTitle; }
 
     @Override
     public String toString() {

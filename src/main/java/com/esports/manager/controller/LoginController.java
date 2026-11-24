@@ -12,14 +12,13 @@ import javafx.scene.paint.Color;
 
 import java.util.prefs.Preferences;
 
-public class LoginController<button> {
+public class LoginController {
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
     @FXML private Label lblError;
     @FXML private Label lblLanguage;
     @FXML private Label lblTheme;
     @FXML private Label lblAccessStatus;
-    @FXML private Label lblDemoCredentials;
     @FXML private CheckBox chkRemember;
     @FXML private ComboBox<I18n.Language> cbLanguage;
     @FXML private ComboBox<String> cbTheme;
@@ -75,8 +74,7 @@ public class LoginController<button> {
         lblLanguage.setText(english ? "Language" : "Ngôn ngữ");
         lblTheme.setText(english ? "Theme" : "Giao diện");
         chkRemember.setText(english ? "Remember" : "Ghi nhớ");
-        lblAccessStatus.setText(english ? "Admin access • local demo" : "Khu vực quản trị • tài khoản demo");
-        lblDemoCredentials.setText(english ? "admin / nexus2026" : "admin / nexus2026");
+        lblAccessStatus.setText(english ? "Secure administrator access" : "Đăng nhập quản trị bảo mật");
         btnLogin.setText(english ? "Login" : "Đăng nhập");
         libHelp.setText(english ? "Help" : "Hỗ Trợ");
         libTournament.setText(english ? "Tournament" : "Giải đấu");
@@ -105,19 +103,29 @@ public class LoginController<button> {
     @FXML
     private void handleLogin() {
         String username = txtUsername.getText() == null ? "" : txtUsername.getText().trim();
-        String password = txtPassword.getText() == null ? "" : txtPassword.getText();
-        if ("admin".equals(username) && "nexus2026".equals(password)) {
-            if (chkRemember.isSelected()) preferences.put("login.username", username);
-            else preferences.remove("login.username");
-            if (onAuthenticated != null) onAuthenticated.run();
-            return;
+        char[] password = txtPassword.getText() == null ? new char[0] : txtPassword.getText().toCharArray();
+        try {
+            if (AppContext.getInstance().getAuthenticationService().authenticate(username, password)) {
+                if (chkRemember.isSelected()) preferences.put("login.username", username);
+                else preferences.remove("login.username");
+                if (onAuthenticated != null) onAuthenticated.run();
+                return;
+            }
+            showError(I18n.getCurrentLanguage() == I18n.Language.ENGLISH
+                    ? "Invalid username or password."
+                    : "Tên đăng nhập hoặc mật khẩu không chính xác.");
+        } catch (RuntimeException e) {
+            showError(e.getMessage());
+        } finally {
+            java.util.Arrays.fill(password, '\0');
+            txtPassword.clear();
         }
-        lblError.setText(I18n.getCurrentLanguage() == I18n.Language.ENGLISH
-                ? "Incorrect username or password. Please try again."
-                : "Thông tin đăng nhập chưa chính xác. Vui lòng thử lại.");
+    }
+
+    private void showError(String message) {
+        lblError.setText(message);
         lblError.setManaged(true);
         lblError.setVisible(true);
-        txtPassword.clear();
         txtPassword.requestFocus();
     }
 }

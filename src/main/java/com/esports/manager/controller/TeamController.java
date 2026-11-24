@@ -35,6 +35,7 @@ public class TeamController {
     @FXML private TableColumn<Team, String> colRoster;
     @FXML private TableColumn<Team, String> colFounded;
     @FXML private TableColumn<Team, String> colEmail;
+    @FXML private TableColumn<Team, String> colGame;
 
     private final AppContext ctx = AppContext.getInstance();
     private FilteredList<Team> filteredData;
@@ -59,6 +60,7 @@ public class TeamController {
 
     private void setupTableColumns() {
         colId.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getId()));
+        colGame.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getGameTitle()));
 
         colTag.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getTag()));
         colTag.setCellFactory(col -> new TableCell<>() {
@@ -189,6 +191,7 @@ public class TeamController {
                     || t.getName().toLowerCase().contains(keyword)
                     || t.getTag().toLowerCase().contains(keyword)
                     || t.getId().toLowerCase().contains(keyword)
+                    || (t.getGameTitle() != null && t.getGameTitle().toLowerCase().contains(keyword))
                     || (t.getCoach() != null && t.getCoach().toLowerCase().contains(keyword));
 
             boolean matchRegion = region == null
@@ -259,6 +262,13 @@ public class TeamController {
         cbRegion.setValue(isEdit ? existing.getRegion() : "Vietnam");
         cbRegion.setMaxWidth(Double.MAX_VALUE);
 
+        ComboBox<String> cbGame = new ComboBox<>(FXCollections.observableArrayList(
+                "League of Legends", "VALORANT", "CS:GO", "Dota 2", "FC Online", "PUBG"
+        ));
+        cbGame.setEditable(true);
+        cbGame.setValue(isEdit ? existing.getGameTitle() : "League of Legends");
+        cbGame.setMaxWidth(Double.MAX_VALUE);
+
         TextField txtCoach = new TextField(isEdit ? existing.getCoach() : "");
         txtCoach.setPromptText(I18n.get("team.dialog.coach_prompt"));
 
@@ -282,16 +292,18 @@ public class TeamController {
         grid.add(txtName, 1, 0);
         grid.add(new Label(I18n.get("team.dialog.lbl_tag")), 0, 1);
         grid.add(txtTag, 1, 1);
-        grid.add(new Label(I18n.get("team.dialog.lbl_region")), 0, 2);
-        grid.add(cbRegion, 1, 2);
-        grid.add(new Label(I18n.get("team.dialog.lbl_coach")), 0, 3);
-        grid.add(txtCoach, 1, 3);
-        grid.add(new Label(I18n.get("team.dialog.lbl_email")), 0, 4);
-        grid.add(txtEmail, 1, 4);
-        grid.add(new Label(I18n.get("team.dialog.lbl_founded")), 0, 5);
-        grid.add(spFounded, 1, 5);
-        grid.add(new Label(I18n.get("team.dialog.lbl_color")), 0, 6);
-        grid.add(colorPicker, 1, 6);
+        grid.add(new Label("Tựa game *"), 0, 2);
+        grid.add(cbGame, 1, 2);
+        grid.add(new Label(I18n.get("team.dialog.lbl_region")), 0, 3);
+        grid.add(cbRegion, 1, 3);
+        grid.add(new Label(I18n.get("team.dialog.lbl_coach")), 0, 4);
+        grid.add(txtCoach, 1, 4);
+        grid.add(new Label(I18n.get("team.dialog.lbl_email")), 0, 5);
+        grid.add(txtEmail, 1, 5);
+        grid.add(new Label(I18n.get("team.dialog.lbl_founded")), 0, 6);
+        grid.add(spFounded, 1, 6);
+        grid.add(new Label(I18n.get("team.dialog.lbl_color")), 0, 7);
+        grid.add(colorPicker, 1, 7);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -314,6 +326,7 @@ public class TeamController {
                 Team target = isEdit ? existing : new Team();
                 target.setName(txtName.getText().trim());
                 target.setTag(txtTag.getText().trim().toUpperCase());
+                target.setGameTitle(cbGame.getValue() == null ? "" : cbGame.getValue().trim());
                 target.setRegion(cbRegion.getValue() != null ? cbRegion.getValue().trim() : "Vietnam");
                 target.setCoach(txtCoach.getText().trim());
                 target.setContactEmail(txtEmail.getText().trim());

@@ -12,6 +12,19 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
+          <root url="file://C:/sqljdbc_13.6/enu/jars" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://C:/sqljdbc_13.6/enu/jars" />
+        </SOURCES>
+        <jarDirectory url="file://C:/sqljdbc_13.6/enu/jars" recursive="false" />
+        <jarDirectory url="file://C:/sqljdbc_13.6/enu/jars" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
           <root url="file://$MAVEN_REPOSITORY$/org/kordamp/ikonli/ikonli-fontawesome5-pack/12.3.1" />
         </CLASSES>
         <JAVADOC />
@@ -20,6 +33,26 @@
         </SOURCES>
         <jarDirectory url="file://$MAVEN_REPOSITORY$/org/kordamp/ikonli/ikonli-fontawesome5-pack/12.3.1" recursive="false" />
         <jarDirectory url="file://$MAVEN_REPOSITORY$/org/kordamp/ikonli/ikonli-fontawesome5-pack/12.3.1" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES />
+        <JAVADOC />
+        <NATIVE>
+          <root url="file://C:/sqljdbc_13.6/enu/auth/x64" />
+        </NATIVE>
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES />
+        <JAVADOC />
+        <NATIVE>
+          <root url="file://C:/sqljdbc_13.6/enu/auth/x86" />
+        </NATIVE>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">

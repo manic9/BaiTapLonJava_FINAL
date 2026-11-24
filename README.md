@@ -63,14 +63,16 @@ src/main/java/com/esports/manager/
 └── util/                      # Utilities
 ```
 
-## Đăng nhập quản trị
+## Tài khoản đăng nhập quản trị
 
-Ứng dụng mở màn hình đăng nhập trước khi vào khu vực quản trị. Tài khoản demo:
+Đăng nhập ứng dụng dùng bảng `dbo.Users`; mật khẩu không lưu dạng rõ. Chạy `sql/create-users-table.sql` trong SSMS, sau đó chạy `com.esports.manager.config.PasswordHashTool` từ terminal để tạo `PasswordHash` và `PasswordSalt` cho tài khoản của bạn. Chèn username/hash/salt được tạo vào `dbo.Users`:
 
-- **Tên đăng nhập**: `admin`
-- **Mật khẩu**: `nexus2026`
+```sql
+INSERT INTO dbo.Users (UserName, PasswordHash, PasswordSalt)
+VALUES (N'<username>', N'<PasswordHash>', N'<PasswordSalt>');
+```
 
-Đây là bước đăng nhập mẫu chạy cục bộ, chưa kết nối máy chủ xác thực hay lưu tài khoản an toàn; không dùng làm cơ chế bảo vệ dữ liệu thật.
+`PasswordHashTool` dùng PBKDF2-HMAC-SHA256 với salt ngẫu nhiên riêng cho mỗi mật khẩu. Mật khẩu SQL Server dùng để kết nối JDBC là thông tin khác; lưu nó ngoài source code trong `config/db.properties` hoặc biến môi trường.
 
 ## Lưu ý
 

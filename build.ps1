@@ -8,6 +8,13 @@ $CP += ';C:\Users\admin\.m2\repository\org\kordamp\ikonli\ikonli-javafx\12.3.1\i
 $CP += ';C:\Users\admin\.m2\repository\org\kordamp\ikonli\ikonli-core\12.3.1\ikonli-core-12.3.1.jar'
 $CP += ';C:\Users\admin\.m2\repository\org\kordamp\ikonli\ikonli-fontawesome5-pack\12.3.1\ikonli-fontawesome5-pack-12.3.1.jar'
 
+if (Test-Path 'lib') {
+    $LIB_JARS = Get-ChildItem -Path 'lib' -Filter '*.jar' | ForEach-Object { $_.FullName }
+    if ($LIB_JARS) {
+        $CP += ';' + ($LIB_JARS -join ';')
+    }
+}
+
 Write-Host 'Compiling Java sources...' -ForegroundColor Cyan
 $FILES = Get-ChildItem -Path 'src\main\java' -Filter '*.java' -Recurse | ForEach-Object { $_.FullName }
 javac -d out -cp $CP -encoding UTF-8 @FILES

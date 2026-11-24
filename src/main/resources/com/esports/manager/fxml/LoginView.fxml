@@ -65,8 +65,7 @@
 
         <Label fx:id="lblError" styleClass="login-error" wrapText="true" />
         <HBox alignment="CENTER" spacing="3.0" styleClass="login-activation">
-            <Label fx:id="lblAccessStatus" text="Khu vực quản trị • tài khoản demo" />
-            <Label fx:id="lblDemoCredentials" styleClass="login-demo" text="admin / nexus2026" />
+            <Label fx:id="lblAccessStatus" text="Đăng nhập quản trị bảo mật" />
         </HBox>
 
         <Region VBox.vgrow="ALWAYS" />

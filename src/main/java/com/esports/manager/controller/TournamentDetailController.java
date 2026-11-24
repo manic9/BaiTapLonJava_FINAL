@@ -9,6 +9,7 @@ import com.esports.manager.model.Tournament;
 import com.esports.manager.model.enums.MatchStatus;
 import com.esports.manager.model.enums.RegistrationStatus;
 import com.esports.manager.util.I18n;
+import com.esports.manager.util.DialogHelper;
 import com.esports.manager.util.ToastManager;
 import com.esports.manager.util.ViewNavigator;
 import javafx.beans.property.SimpleObjectProperty;
@@ -16,6 +17,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -296,5 +299,75 @@ public class TournamentDetailController {
                 "BracketView.fxml", I18n.get("page.bracket.title"),
                 ctrl -> ctrl.selectTournament(tournament.getId())
         );
+    }
+
+    @FXML
+    public void handleAddTeam() {
+        if (tournament == null) return;
+
+        List<String> alreadyRegistered = ctx.getRegistrationService().getAll().stream()
+                .filter(r -> r.getTournamentId().equals(tournament.getId())
+                        && r.getStatus() != RegistrationStatus.REJECTED)
+                .map(Registration::getTeamId)
+                .toList();
+        List<Team> availableTeams = ctx.getTeamService().getAll().stream()
+                .filter(team -> !alreadyRegistered.contains(team.getId()))
+                .filter(team -> team.getGameTitle() != null && tournament.getGameTitle() != null
+                        && team.getGameTitle().trim().equalsIgnoreCase(tournament.getGameTitle().trim()))
+                .toList();
+        if (availableTeams.isEmpty()) {
+            ToastManager.showInfo("Không còn đội chưa đăng ký thuộc game " + tournament.getGameTitle() + ".");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Thêm đội tuyển");
+        dialog.setHeaderText("Đăng ký đội tham gia " + tournament.getName());
+        dialog.getDialogPane().getButtonTypes().setAll(
+                new ButtonType("Thêm đội", ButtonBar.ButtonData.OK_DONE),
+                new ButtonType("Hủy", ButtonBar.ButtonData.CANCEL_CLOSE));
+        DialogHelper.applyDarkTheme(dialog.getDialogPane());
+
+        ComboBox<Team> cbTeam = new ComboBox<>(FXCollections.observableArrayList(availableTeams));
+        cbTeam.setPromptText("Chọn đội tuyển");
+        cbTeam.setMaxWidth(Double.MAX_VALUE);
+        TextArea txtNotes = new TextArea();
+        txtNotes.setPromptText("Ghi chú (không bắt buộc)");
+        txtNotes.setPrefRowCount(3);
+
+        GridPane form = new GridPane();
+        form.setHgap(12);
+        form.setVgap(12);
+        form.setPadding(new Insets(8, 4, 4, 4));
+        form.add(new Label("Đội tuyển"), 0, 0);
+        form.add(cbTeam, 1, 0);
+        form.add(new Label("Ghi chú"), 0, 1);
+        form.add(txtNotes, 1, 1);
+        GridPane.setHgrow(cbTeam, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setHgrow(txtNotes, javafx.scene.layout.Priority.ALWAYS);
+        dialog.getDialogPane().setContent(form);
+
+        Button addButton = (Button) dialog.getDialogPane().lookupButton(dialog.getDialogPane().getButtonTypes().get(0));
+        addButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            if (cbTeam.getValue() == null) {
+                ToastManager.showError("Hãy chọn đội tuyển cần thêm.");
+                event.consume();
+            }
+        });
+
+        dialog.showAndWait().filter(button -> button.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                .ifPresent(button -> {
+                    Registration registration = new Registration();
+                    registration.setTournamentId(tournament.getId());
+                    registration.setTeamId(cbTeam.getValue().getId());
+                    registration.setNotes(txtNotes.getText().trim());
+                    try {
+                        ctx.getRegistrationService().register(registration);
+                        refreshAll();
+                        ToastManager.showSuccess("Đã thêm đội vào danh sách chờ duyệt.");
+                    } catch (IllegalStateException ex) {
+                        ToastManager.showError(ex.getMessage());
+                    }
+                });
     }
 }
