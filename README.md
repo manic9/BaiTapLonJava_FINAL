@@ -1,4 +1,4 @@
-# Nexus Arena - Esports Tournament Manager
+# Ql Tournament - Esports Tournament Manager
 
 Ứng dụng JavaFX quản lý giải đấu esports.
 
