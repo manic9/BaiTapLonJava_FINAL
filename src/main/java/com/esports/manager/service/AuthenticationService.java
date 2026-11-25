@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public final class AuthenticationService {
-    private static final String FIND_USER = "SELECT PasswordHash, PasswordSalt, IsActive FROM dbo.Users WHERE UserName = ?";
+    private static final String FIND_USER = "SELECT PasswordHash, PasswordSalt, IsActive FROM dbo.Users WHERE Username = ?";
     private final DatabaseConnection database;
 
     public AuthenticationService(DatabaseConnection database) {

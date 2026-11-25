@@ -14,36 +14,37 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import com.esports.manager.util.IdGenerator;
 
 public class SqlServerTournamentRepository implements Repository<Tournament> {
 
-    private static final String SELECT_ALL_SQL = """
-            SELECT Id, Name, GameTitle, Organizer, Format, Status,
+    private static final String SELECT_ALL_SQL_TEMPLATE = """
+            SELECT Id, Name, __GAME_COLUMN__ AS Game, Organizer, Format, Status,
                    MaxTeams, PrizePool, StartDate, EndDate, Location, Description
             FROM dbo.Tournaments
             ORDER BY StartDate DESC, CreatedAt DESC
             """;
 
-    private static final String SELECT_BY_ID_SQL = """
-            SELECT Id, Name, GameTitle, Organizer, Format, Status,
+    private static final String SELECT_BY_ID_SQL_TEMPLATE = """
+            SELECT Id, Name, __GAME_COLUMN__ AS Game, Organizer, Format, Status,
                    MaxTeams, PrizePool, StartDate, EndDate, Location, Description
             FROM dbo.Tournaments
             WHERE Id = ?
             """;
 
-    private static final String UPSERT_SQL = """
+    private static final String UPSERT_SQL_TEMPLATE = """
             IF EXISTS (SELECT 1 FROM dbo.Tournaments WHERE Id = ?)
             BEGIN
                 UPDATE dbo.Tournaments
                 SET Name = ?,
-                    GameTitle = ?,
+                    __GAME_COLUMN__ = ?,
                     Organizer = ?,
                     Format = ?,
                     Status = ?,
@@ -59,20 +60,50 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
             ELSE
             BEGIN
                 INSERT INTO dbo.Tournaments
-                    (Id, Name, GameTitle, Organizer, Format, Status,
-                     MaxTeams, PrizePool, StartDate, EndDate, Location, Description, CreatedAt)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATETIME())
+                    (Id, Name, __GAME_COLUMN__, Organizer, Format, Status,
+                     MaxTeams, PrizePool, StartDate, EndDate, Location, Description, CreatedAt, UpdatedAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATETIME(), SYSDATETIME())
             END
             """;
 
     private final DatabaseConnection dbConnection;
     private final TransactionManager transactionManager;
     private final ObservableList<Tournament> cache = FXCollections.observableArrayList();
+    private final String selectAllSql;
+    private final String selectByIdSql;
+    private final String upsertSql;
 
     public SqlServerTournamentRepository(DatabaseConnection dbConnection, TransactionManager transactionManager) {
         this.dbConnection = dbConnection;
         this.transactionManager = transactionManager;
+        String gameColumn = resolveGameColumn();
+        this.selectAllSql = sqlWithGameColumn(SELECT_ALL_SQL_TEMPLATE, gameColumn);
+        this.selectByIdSql = sqlWithGameColumn(SELECT_BY_ID_SQL_TEMPLATE, gameColumn);
+        this.upsertSql = sqlWithGameColumn(UPSERT_SQL_TEMPLATE, gameColumn);
         reloadCache();
+    }
+
+    /** Supports databases created with either the current Game or legacy GameTitle column. */
+    private String resolveGameColumn() {
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT TOP (0) * FROM dbo.Tournaments");
+             ResultSet rs = ps.executeQuery()) {
+            ResultSetMetaData metadata = rs.getMetaData();
+            for (int i = 1; i <= metadata.getColumnCount(); i++) {
+                String column = metadata.getColumnName(i);
+                if ("Game".equalsIgnoreCase(column)) return "Game";
+                if ("GameTitle".equalsIgnoreCase(column)) return "GameTitle";
+            }
+            throw new IllegalStateException("dbo.Tournaments không có cột Game hoặc GameTitle.");
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không thể kiểm tra cấu trúc dbo.Tournaments: "
+                    + DatabaseConnection.translateSqlException(e), e);
+        }
+    }
+
+    private static String sqlWithGameColumn(String template, String column) {
+        // `column` comes only from the two names allowed by resolveGameColumn().
+        return template.replace("__GAME_COLUMN__", "[" + column + "]");
     }
 
     public final void reloadCache() {
@@ -83,7 +114,7 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
     private List<Tournament> queryAllFromDb() {
         List<Tournament> list = new ArrayList<>();
         try (Connection conn = dbConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_ALL_SQL);
+             PreparedStatement ps = conn.prepareStatement(selectAllSql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -108,7 +139,7 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
             return Optional.empty();
         }
         try (Connection conn = dbConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
+             PreparedStatement ps = conn.prepareStatement(selectByIdSql)) {
 
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -126,7 +157,7 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
     @Override
     public Tournament save(Tournament entity) {
         if (entity.getId() == null || entity.getId().isBlank()) {
-            entity.setId("TRN-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
+            entity.setId(IdGenerator.next("TRN"));
         }
 
         String formatStr = entity.getFormat() != null
@@ -141,17 +172,22 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
                 : start;
         int maxTeams = Math.max(entity.getMaxTeams(), 2);
         BigDecimal prizePool = BigDecimal.valueOf(Math.max(entity.getPrizePool(), 0.0));
+        String game = (entity.getGameTitle() != null && !entity.getGameTitle().isBlank())
+                ? entity.getGameTitle()
+                : "League of Legends";
+        String organizer = entity.getOrganizer() != null && !entity.getOrganizer().isBlank()
+                ? entity.getOrganizer().trim() : "Nexus Arena";
 
         try (Connection conn = dbConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPSERT_SQL)) {
+             PreparedStatement ps = conn.prepareStatement(upsertSql)) {
 
-            // Điều kiện IF EXISTS
+            // IF EXISTS
             ps.setString(1, entity.getId());
 
-            // Nhánh UPDATE
+            // UPDATE
             ps.setString(2, entity.getName());
-            ps.setString(3, entity.getGameTitle());
-            setNullableString(ps, 4, entity.getOrganizer());
+            ps.setString(3, game);
+            ps.setString(4, organizer);
             ps.setString(5, formatStr);
             ps.setString(6, statusStr);
             ps.setInt(7, maxTeams);
@@ -162,11 +198,11 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
             setNullableString(ps, 12, entity.getDescription());
             ps.setString(13, entity.getId());
 
-            // Nhánh INSERT
+            // INSERT
             ps.setString(14, entity.getId());
             ps.setString(15, entity.getName());
-            ps.setString(16, entity.getGameTitle());
-            setNullableString(ps, 17, entity.getOrganizer());
+            ps.setString(16, game);
+            ps.setString(17, organizer);
             ps.setString(18, formatStr);
             ps.setString(19, statusStr);
             ps.setInt(20, maxTeams);
@@ -191,15 +227,16 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
             return false;
         }
 
-        String unlinkSql = "UPDATE dbo.Matches SET NextMatchId = NULL, LoserNextMatchId = NULL WHERE TournamentId = ?";
+        String unlinkMatchesSql = "UPDATE dbo.Matches SET NextMatchId = NULL, LoserNextMatchId = NULL WHERE TournamentId = ?";
         String deleteSql = "DELETE FROM dbo.Tournaments WHERE Id = ?";
 
         try {
             boolean deleted = transactionManager.executeInTransaction(conn -> {
-                try (PreparedStatement psUnlink = conn.prepareStatement(unlinkSql)) {
+                try (PreparedStatement psUnlink = conn.prepareStatement(unlinkMatchesSql)) {
                     psUnlink.setString(1, id);
                     psUnlink.executeUpdate();
-                }
+                } catch (SQLException ignored) {}
+
                 try (PreparedStatement psDelete = conn.prepareStatement(deleteSql)) {
                     psDelete.setString(1, id);
                     return psDelete.executeUpdate() > 0;
@@ -217,14 +254,15 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
 
     @Override
     public void clear() {
-        String unlinkSql = "UPDATE dbo.Matches SET NextMatchId = NULL, LoserNextMatchId = NULL";
+        String unlinkMatchesSql = "UPDATE dbo.Matches SET NextMatchId = NULL, LoserNextMatchId = NULL";
         String deleteAllSql = "DELETE FROM dbo.Tournaments";
 
         try {
             transactionManager.executeVoidInTransaction(conn -> {
-                try (PreparedStatement ps1 = conn.prepareStatement(unlinkSql)) {
+                try (PreparedStatement ps1 = conn.prepareStatement(unlinkMatchesSql)) {
                     ps1.executeUpdate();
-                }
+                } catch (SQLException ignored) {}
+
                 try (PreparedStatement ps2 = conn.prepareStatement(deleteAllSql)) {
                     ps2.executeUpdate();
                 }
@@ -253,7 +291,7 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
         Tournament t = new Tournament();
         t.setId(rs.getString("Id"));
         t.setName(rs.getString("Name"));
-        t.setGameTitle(rs.getString("GameTitle"));
+        t.setGameTitle(rs.getString("Game"));
         t.setOrganizer(rs.getString("Organizer"));
         t.setFormat(parseEnum(BracketFormat.class, rs.getString("Format"), BracketFormat.values()[0]));
         t.setStatus(parseEnum(TournamentStatus.class, rs.getString("Status"), TournamentStatus.values()[0]));

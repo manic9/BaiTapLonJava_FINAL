@@ -310,12 +310,16 @@ public class TournamentController {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
                 I18n.get("tournament.delete.title"),
                 String.format(I18n.get("tournament.delete.message"), t.getName(), t.getId()))) {
-            if (ctx.getTournamentService().delete(t.getId())) {
-                tournamentTable.refresh();
-                updateCountLabel();
-                ToastManager.showSuccess(String.format(I18n.get("tournament.toast.deleted"), t.getName()));
-            } else {
-                ToastManager.showError(I18n.get("tournament.toast.delete_error"));
+            try {
+                if (ctx.getTournamentService().delete(t.getId())) {
+                    tournamentTable.refresh();
+                    updateCountLabel();
+                    ToastManager.showSuccess(String.format(I18n.get("tournament.toast.deleted"), t.getName()));
+                } else {
+                    ToastManager.showError(I18n.get("tournament.toast.delete_error"));
+                }
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Xóa giải đấu không thành công", ex);
             }
         }
     }
@@ -418,41 +422,46 @@ public class TournamentController {
                 return;
             }
 
-            if (isEdit) {
-                existing.setName(txtName.getText().trim());
-                existing.setGameTitle(cbGame.getValue());
-                existing.setOrganizer(txtOrganizer.getText().trim());
-                existing.setFormat(cbFormat.getValue());
-                existing.setStatus(cbStatus.getValue());
-                existing.setMaxTeams(spMaxTeams.getValue());
-                existing.setPrizePool(prize);
-                existing.setStartDate(dpStart.getValue());
-                existing.setEndDate(dpEnd.getValue());
-                existing.setLocation(txtLocation.getText().trim());
-                existing.setDescription(txtDesc.getText().trim());
+            try {
+                if (isEdit) {
+                    existing.setName(txtName.getText().trim());
+                    existing.setGameTitle(cbGame.getValue());
+                    existing.setOrganizer(txtOrganizer.getText().trim());
+                    existing.setFormat(cbFormat.getValue());
+                    existing.setStatus(cbStatus.getValue());
+                    existing.setMaxTeams(spMaxTeams.getValue());
+                    existing.setPrizePool(prize);
+                    existing.setStartDate(dpStart.getValue());
+                    existing.setEndDate(dpEnd.getValue());
+                    existing.setLocation(txtLocation.getText().trim());
+                    existing.setDescription(txtDesc.getText().trim());
 
-                ctx.getTournamentService().update(existing);
-                ToastManager.showSuccess(String.format(I18n.get("tournament.toast.updated"), existing.getName()));
-            } else {
-                Tournament newTournament = new Tournament();
-                newTournament.setName(txtName.getText().trim());
-                newTournament.setGameTitle(cbGame.getValue());
-                newTournament.setOrganizer(txtOrganizer.getText().trim());
-                newTournament.setFormat(cbFormat.getValue() != null ? cbFormat.getValue() : BracketFormat.SINGLE_ELIMINATION);
-                newTournament.setStatus(cbStatus.getValue() != null ? cbStatus.getValue() : TournamentStatus.UPCOMING);
-                newTournament.setMaxTeams(spMaxTeams.getValue());
-                newTournament.setPrizePool(prize);
-                newTournament.setStartDate(dpStart.getValue());
-                newTournament.setEndDate(dpEnd.getValue());
-                newTournament.setLocation(txtLocation.getText().trim());
-                newTournament.setDescription(txtDesc.getText().trim());
+                    ctx.getTournamentService().update(existing);
+                    ToastManager.showSuccess(String.format(I18n.get("tournament.toast.updated"), existing.getName()));
+                } else {
+                    Tournament newTournament = new Tournament();
+                    newTournament.setName(txtName.getText().trim());
+                    newTournament.setGameTitle(cbGame.getValue());
+                    newTournament.setOrganizer(txtOrganizer.getText().trim());
+                    newTournament.setFormat(cbFormat.getValue() != null ? cbFormat.getValue() : BracketFormat.SINGLE_ELIMINATION);
+                    newTournament.setStatus(cbStatus.getValue() != null ? cbStatus.getValue() : TournamentStatus.UPCOMING);
+                    newTournament.setMaxTeams(spMaxTeams.getValue());
+                    newTournament.setPrizePool(prize);
+                    newTournament.setStartDate(dpStart.getValue());
+                    newTournament.setEndDate(dpEnd.getValue());
+                    newTournament.setLocation(txtLocation.getText().trim());
+                    newTournament.setDescription(txtDesc.getText().trim());
 
-                ctx.getTournamentService().create(newTournament);
-                ToastManager.showSuccess(String.format(I18n.get("tournament.toast.created"), newTournament.getName()));
+                    ctx.getTournamentService().create(newTournament);
+                    ToastManager.showSuccess(String.format(I18n.get("tournament.toast.created"), newTournament.getName()));
+                }
+
+                tournamentTable.refresh();
+                updateCountLabel();
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Lưu giải đấu không thành công", ex);
+                ev.consume();
             }
-
-            tournamentTable.refresh();
-            updateCountLabel();
         });
 
         dialog.showAndWait();

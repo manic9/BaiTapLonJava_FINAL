@@ -256,9 +256,15 @@ public class MatchController {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
                 "Xóa trận đấu",
                 "Bạn có chắc chắn muốn xóa trận đấu " + m.getRoundName() + " (" + m.getId() + ")?")) {
-            if (ctx.getMatchService().delete(m.getId())) {
-                updateCountLabel();
-                ToastManager.showSuccess("Đã xóa trận đấu: " + m.getId());
+            try {
+                if (ctx.getMatchService().delete(m.getId())) {
+                    updateCountLabel();
+                    ToastManager.showSuccess("Đã xóa trận đấu: " + m.getId());
+                } else {
+                    ToastManager.showError("Không tìm thấy trận đấu cần xóa.");
+                }
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Xóa trận đấu không thành công", ex);
             }
         }
     }
@@ -342,9 +348,13 @@ public class MatchController {
 
         Optional<ButtonType> res = dialog.showAndWait();
         if (res.isPresent() && res.get() == btnSave) {
-            ctx.getMatchService().updateMatchResult(match.getId(), spScoreA.getValue(), spScoreB.getValue(), cbStatus.getValue());
-            ToastManager.showSuccess(String.format(com.esports.manager.util.I18n.get("match.dialog.updated"), match.getId()));
-            if (onUpdated != null) onUpdated.run();
+            try {
+                ctx.getMatchService().updateMatchResult(match.getId(), spScoreA.getValue(), spScoreB.getValue(), cbStatus.getValue());
+                ToastManager.showSuccess(String.format(com.esports.manager.util.I18n.get("match.dialog.updated"), match.getId()));
+                if (onUpdated != null) onUpdated.run();
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Cập nhật kết quả trận đấu không thành công", ex);
+            }
         }
     }
 
@@ -451,10 +461,14 @@ public class MatchController {
         });
 
         dialog.showAndWait().ifPresent(m -> {
-            ctx.getMatchService().save(m);
-            matchTable.refresh();
-            updateCountLabel();
-            ToastManager.showSuccess(isEdit ? com.esports.manager.util.I18n.get("match.dialog.updated_msg") : com.esports.manager.util.I18n.get("match.dialog.created_msg"));
+            try {
+                ctx.getMatchService().save(m);
+                matchTable.refresh();
+                updateCountLabel();
+                ToastManager.showSuccess(isEdit ? com.esports.manager.util.I18n.get("match.dialog.updated_msg") : com.esports.manager.util.I18n.get("match.dialog.created_msg"));
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Lưu trận đấu không thành công", ex);
+            }
         });
     }
 }

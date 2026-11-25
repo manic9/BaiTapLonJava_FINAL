@@ -33,7 +33,6 @@ public class TeamController {
     @FXML private TableColumn<Team, String> colRegion;
     @FXML private TableColumn<Team, String> colCoach;
     @FXML private TableColumn<Team, String> colRoster;
-    @FXML private TableColumn<Team, String> colFounded;
     @FXML private TableColumn<Team, String> colEmail;
     @FXML private TableColumn<Team, String> colGame;
 
@@ -118,7 +117,6 @@ public class TeamController {
             }
         });
 
-        colFounded.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().getFoundedYear())));
         colEmail.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getContactEmail()));
 
     }
@@ -223,12 +221,16 @@ public class TeamController {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
                 I18n.get("team.delete.title"),
                 String.format(I18n.get("team.delete.message"), team.getName(), team.getTag()))) {
-            if (ctx.getTeamService().delete(team.getId())) {
-                teamTable.refresh();
-                updateCountLabel();
-                ToastManager.showSuccess(String.format(I18n.get("team.toast.deleted"), team.getName()));
-            } else {
-                ToastManager.showError(I18n.get("team.toast.delete_error"));
+            try {
+                if (ctx.getTeamService().delete(team.getId())) {
+                    teamTable.refresh();
+                    updateCountLabel();
+                    ToastManager.showSuccess(String.format(I18n.get("team.toast.deleted"), team.getName()));
+                } else {
+                    ToastManager.showError(I18n.get("team.toast.delete_error"));
+                }
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Xóa đội tuyển không thành công", ex);
             }
         }
     }
@@ -275,10 +277,6 @@ public class TeamController {
         TextField txtEmail = new TextField(isEdit ? existing.getContactEmail() : "");
         txtEmail.setPromptText("manager@team.gg");
 
-        Spinner<Integer> spFounded = new Spinner<>(1998, 2026, isEdit ? existing.getFoundedYear() : 2024);
-        spFounded.setEditable(true);
-        spFounded.setMaxWidth(Double.MAX_VALUE);
-
         Color initialColor = Color.web("#7C5CFC");
         if (isEdit && existing.getAccentColor() != null) {
             try {
@@ -300,10 +298,8 @@ public class TeamController {
         grid.add(txtCoach, 1, 4);
         grid.add(new Label(I18n.get("team.dialog.lbl_email")), 0, 5);
         grid.add(txtEmail, 1, 5);
-        grid.add(new Label(I18n.get("team.dialog.lbl_founded")), 0, 6);
-        grid.add(spFounded, 1, 6);
-        grid.add(new Label(I18n.get("team.dialog.lbl_color")), 0, 7);
-        grid.add(colorPicker, 1, 7);
+        grid.add(new Label(I18n.get("team.dialog.lbl_color")), 0, 6);
+        grid.add(colorPicker, 1, 6);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -330,7 +326,6 @@ public class TeamController {
                 target.setRegion(cbRegion.getValue() != null ? cbRegion.getValue().trim() : "Vietnam");
                 target.setCoach(txtCoach.getText().trim());
                 target.setContactEmail(txtEmail.getText().trim());
-                target.setFoundedYear(spFounded.getValue());
                 target.setAccentColor(toHex(colorPicker.getValue()));
                 return target;
             }
@@ -339,11 +334,15 @@ public class TeamController {
 
         Optional<Team> res = dialog.showAndWait();
         res.ifPresent(team -> {
-            ctx.getTeamService().save(team, !isEdit);
-            teamTable.refresh();
-            updateCountLabel();
-            String msgKey = isEdit ? "team.toast.updated" : "team.toast.created";
-            ToastManager.showSuccess(String.format(I18n.get(msgKey), team.getName()));
+            try {
+                ctx.getTeamService().save(team, !isEdit);
+                teamTable.refresh();
+                updateCountLabel();
+                String msgKey = isEdit ? "team.toast.updated" : "team.toast.created";
+                ToastManager.showSuccess(String.format(I18n.get(msgKey), team.getName()));
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Lưu đội tuyển không thành công", ex);
+            }
         });
     }
 

@@ -136,7 +136,8 @@ public class PlayerController {
         });
 
         colNationality.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getNationality()));
-        colAge.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().getAge())));
+        colAge.setCellValueFactory(d -> new SimpleStringProperty(
+                d.getValue().getAge() > 0 ? String.valueOf(d.getValue().getAge()) : "-"));
 
         colKda.setCellValueFactory(d -> new SimpleStringProperty(String.format(Locale.US, "%.2f", d.getValue().getKdaRatio())));
         colKda.setCellFactory(col -> new TableCell<>() {
@@ -246,12 +247,16 @@ public class PlayerController {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
                 I18n.get("player.delete.title"),
                 String.format(I18n.get("player.delete.message"), p.getInGameName(), p.getFullName()))) {
-            if (ctx.getPlayerService().delete(p.getId())) {
-                playerTable.refresh();
-                updateCountLabel();
-                ToastManager.showSuccess(String.format(I18n.get("player.toast.deleted"), p.getInGameName()));
-            } else {
-                ToastManager.showError(I18n.get("player.toast.delete_error"));
+            try {
+                if (ctx.getPlayerService().delete(p.getId())) {
+                    playerTable.refresh();
+                    updateCountLabel();
+                    ToastManager.showSuccess(String.format(I18n.get("player.toast.deleted"), p.getInGameName()));
+                } else {
+                    ToastManager.showError(I18n.get("player.toast.delete_error"));
+                }
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Xóa tuyển thủ không thành công", ex);
             }
         }
     }
@@ -294,7 +299,7 @@ public class PlayerController {
         cbRole.setMaxWidth(Double.MAX_VALUE);
 
         TextField txtNationality = new TextField(isEdit ? existing.getNationality() : "Vietnam");
-        Spinner<Integer> spAge = new Spinner<>(15, 45, isEdit ? existing.getAge() : 18);
+        Spinner<Integer> spAge = new Spinner<>(0, 100, isEdit ? existing.getAge() : 18);
         spAge.setEditable(true);
         spAge.setMaxWidth(Double.MAX_VALUE);
 
@@ -355,11 +360,15 @@ public class PlayerController {
 
         Optional<Player> res = dialog.showAndWait();
         res.ifPresent(player -> {
-            ctx.getPlayerService().save(player, !isEdit);
-            playerTable.refresh();
-            updateCountLabel();
-            String msgKey = isEdit ? "player.toast.updated" : "player.toast.created";
-            ToastManager.showSuccess(String.format(I18n.get(msgKey), player.getInGameName()));
+            try {
+                ctx.getPlayerService().save(player, !isEdit);
+                playerTable.refresh();
+                updateCountLabel();
+                String msgKey = isEdit ? "player.toast.updated" : "player.toast.created";
+                ToastManager.showSuccess(String.format(I18n.get(msgKey), player.getInGameName()));
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Lưu tuyển thủ không thành công", ex);
+            }
         });
     }
 }

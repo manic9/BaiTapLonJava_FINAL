@@ -55,7 +55,6 @@ public class TournamentDetailController {
     @FXML private TableColumn<Registration, String> colRegRegion;
     @FXML private TableColumn<Registration, String> colRegNotes;
     @FXML private TableColumn<Registration, RegistrationStatus> colRegStatus;
-    @FXML private TableColumn<Registration, Void> colRegAction;
 
     // Tab 2: Matches
     @FXML private TableView<Match> matchTable;
@@ -193,35 +192,62 @@ public class TournamentDetailController {
                 }
             }
         });
+        regTable.setRowFactory(table -> {
+            TableRow<Registration> row = new TableRow<>();
+            ContextMenu menu = new ContextMenu();
+            MenuItem approve = new MenuItem("Duyệt đội");
+            MenuItem reject = new MenuItem("Từ chối đơn");
+            MenuItem delete = new MenuItem("Xóa đăng ký");
 
-        colRegAction.setCellFactory(col -> new TableCell<>() {
-            private final Button btnApprove = new Button("Duyệt đội");
-            {
-                btnApprove.getStyleClass().add("btn-primary");
-                btnApprove.setStyle("-fx-padding: 4 10; -fx-font-size: 11px;");
-                btnApprove.setOnAction(e -> {
-                    Registration reg = getTableView().getItems().get(getIndex());
-                    try {
-                        ctx.getRegistrationService().updateStatus(reg.getId(), RegistrationStatus.APPROVED);
-                        ToastManager.showSuccess("Đã duyệt đội tham gia giải đấu!");
-                        refreshAll();
-                    } catch (IllegalStateException ex) {
-                        ToastManager.showError(ex.getMessage());
-                    }
-                });
-            }
+            approve.setOnAction(event -> changeRegistrationStatus(row.getItem(), RegistrationStatus.APPROVED));
+            reject.setOnAction(event -> changeRegistrationStatus(row.getItem(), RegistrationStatus.REJECTED));
+            delete.setOnAction(event -> deleteRegistration(row.getItem()));
+            menu.getItems().setAll(approve, reject, new SeparatorMenuItem(), delete);
 
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    Registration reg = getTableView().getItems().get(getIndex());
-                    setGraphic(reg.getStatus() == RegistrationStatus.PENDING ? btnApprove : null);
+            row.setOnContextMenuRequested(event -> {
+                if (row.isEmpty()) {
+                    menu.hide();
+                    return;
                 }
-            }
+                regTable.getSelectionModel().select(row.getItem());
+                Registration registration = row.getItem();
+                approve.setDisable(registration.getStatus() == RegistrationStatus.APPROVED);
+                reject.setDisable(registration.getStatus() == RegistrationStatus.REJECTED);
+                menu.show(row, event.getScreenX(), event.getScreenY());
+                event.consume();
+            });
+            row.emptyProperty().addListener((obs, wasEmpty, isEmpty) -> {
+                if (isEmpty) menu.hide();
+            });
+            return row;
         });
+    }
+
+    private void changeRegistrationStatus(Registration registration, RegistrationStatus status) {
+        if (registration == null) return;
+        try {
+            ctx.getRegistrationService().updateStatus(registration.getId(), status);
+            ToastManager.showSuccess(status == RegistrationStatus.APPROVED
+                    ? "Đã duyệt đội tham gia giải đấu!" : "Đã từ chối đơn đăng ký.");
+            refreshAll();
+        } catch (IllegalStateException ex) {
+            ToastManager.showError(ex.getMessage());
+        }
+    }
+
+    private void deleteRegistration(Registration registration) {
+        if (registration == null) return;
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Xóa đăng ký");
+        confirmation.setHeaderText("Xóa đơn đăng ký của đội này?");
+        confirmation.setContentText("Thao tác này không thể hoàn tác.");
+        if (confirmation.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
+        if (ctx.getRegistrationService().delete(registration.getId())) {
+            ToastManager.showSuccess("Đã xóa đơn đăng ký.");
+            refreshAll();
+        } else {
+            ToastManager.showError("Không thể xóa đơn đăng ký.");
+        }
     }
 
     private void setupMatchColumns() {

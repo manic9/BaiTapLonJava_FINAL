@@ -149,12 +149,16 @@ public class PrizeController {
             PrizeAllocation p = prizeTable.getSelectionModel().getSelectedItem();
             if (p != null) {
                 p.setPaid(!p.isPaid());
-                ctx.getPrizeService().save(p);
-                prizeTable.refresh();
-                updateSummaryKpis();
-                ToastManager.showSuccess(p.isPaid()
-                        ? String.format(I18n.get("prize.toast.disbursed"), p.getPlacement())
-                        : I18n.get("prize.toast.reverted"));
+                try {
+                    ctx.getPrizeService().save(p);
+                    prizeTable.refresh();
+                    updateSummaryKpis();
+                    ToastManager.showSuccess(p.isPaid()
+                            ? String.format(I18n.get("prize.toast.disbursed"), p.getPlacement())
+                            : I18n.get("prize.toast.reverted"));
+                } catch (RuntimeException ex) {
+                    ToastManager.showOperationError("Cập nhật giải ngân không thành công", ex);
+                }
             }
         });
 
@@ -253,10 +257,16 @@ public class PrizeController {
         if (!ctx.getSettings().isConfirmBeforeDelete() || DialogHelper.confirmDelete(
                 I18n.get("prize.delete.title"),
                 String.format(I18n.get("prize.delete.message"), p.getPlacement(), p.getId()))) {
-            if (ctx.getPrizeService().delete(p.getId())) {
-                prizeTable.refresh();
-                updateSummaryKpis();
-                ToastManager.showSuccess(I18n.get("prize.toast.deleted"));
+            try {
+                if (ctx.getPrizeService().delete(p.getId())) {
+                    prizeTable.refresh();
+                    updateSummaryKpis();
+                    ToastManager.showSuccess(I18n.get("prize.toast.deleted"));
+                } else {
+                    ToastManager.showError(I18n.get("prize.toast.delete_error"));
+                }
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Xóa phân bổ giải thưởng không thành công", ex);
             }
         }
     }
@@ -361,10 +371,14 @@ public class PrizeController {
 
         Optional<PrizeAllocation> res = dialog.showAndWait();
         res.ifPresent(p -> {
-            ctx.getPrizeService().save(p);
-            prizeTable.refresh();
-            updateSummaryKpis();
-            ToastManager.showSuccess(isEdit ? I18n.get("prize.dialog.updated_msg") : I18n.get("prize.dialog.created_msg"));
+            try {
+                ctx.getPrizeService().save(p);
+                prizeTable.refresh();
+                updateSummaryKpis();
+                ToastManager.showSuccess(isEdit ? I18n.get("prize.dialog.updated_msg") : I18n.get("prize.dialog.created_msg"));
+            } catch (RuntimeException ex) {
+                ToastManager.showOperationError("Lưu phân bổ giải thưởng không thành công", ex);
+            }
         });
     }
 }

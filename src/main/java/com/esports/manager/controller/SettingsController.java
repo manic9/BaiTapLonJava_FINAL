@@ -91,7 +91,12 @@ public class SettingsController {
         settings.setAutoAdvanceBracket(chkAutoAdvance.isSelected());
         settings.setConfirmBeforeDelete(chkConfirmDelete.isSelected());
 
-        ToastManager.showSuccess("Đã lưu cấu hình hệ thống thành công!");
+        try {
+            ctx.saveSettings();
+            ToastManager.showSuccess("Đã lưu cấu hình hệ thống vào SQL Server!");
+        } catch (RuntimeException ex) {
+            ToastManager.showOperationError("Không thể lưu cấu hình", ex);
+        }
     }
 
     @FXML

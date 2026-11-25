@@ -1100,7 +1100,13 @@ public final class I18n {
     public static void setLanguage(Language lang) {
         if (lang == null || lang == currentLanguage) return;
         currentLanguage = lang;
-        AppContext.getInstance().getSettings().setLanguage(lang.getCode());
+        AppContext context = AppContext.getInstance();
+        context.getSettings().setLanguage(lang.getCode());
+        try {
+            context.saveSettings();
+        } catch (RuntimeException e) {
+            System.err.println("[SQL settings] Không thể lưu ngôn ngữ: " + e.getMessage());
+        }
         notifyListeners();
     }
 

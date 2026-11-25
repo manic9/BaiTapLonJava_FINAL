@@ -40,8 +40,8 @@ public final class PasswordHashTool {
             System.out.println("--------------------------------------------------");
             System.out.println("Câu lệnh SQL để thêm vào dbo.Users:");
             System.out.printf(
-                "INSERT INTO dbo.Users (UserName, PasswordHash, PasswordSalt, IsActive)%n" +
-                "VALUES (N'%s', N'%s', N'%s', 1);%n",
+                "INSERT INTO dbo.Users (Id, Username, PasswordHash, PasswordSalt, FullName, Role, IsActive)%n" +
+                "VALUES (NEWID(), N'%s', N'%s', N'%s', N'Administrator', N'ADMIN', 1);%n",
                 username.replace("'", "''"), result.hashBase64(), result.saltBase64()
             );
             System.out.println("--------------------------------------------------");

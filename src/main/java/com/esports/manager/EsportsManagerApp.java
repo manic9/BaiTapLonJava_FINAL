@@ -14,21 +14,36 @@ public class EsportsManagerApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Khởi tạo Repository, Service & nạp dữ liệu mẫu vào bộ nhớ
-        AppContext.getInstance().initialize();
+        AppContext appContext = AppContext.getInstance();
+        try {
+            appContext.initialize();
+        } catch (RuntimeException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Không thể khởi động Nexus Arena");
+            alert.setHeaderText("Ứng dụng yêu cầu SQL Server để lưu dữ liệu");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+            return;
+        }
 
         primaryStage.setTitle("Nexus Arena | Đăng nhập");
         primaryStage.setMinWidth(390);
         primaryStage.setMinHeight(550);
         showLogin(primaryStage);
         primaryStage.show();
-        AppContext appContext = AppContext.getInstance();
         if (!appContext.getInitialDbStatus().connected()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Không kết nối được SQL Server");
             alert.setHeaderText("Ứng dụng đang chạy ở chế độ dữ liệu tạm thời");
             alert.setContentText(appContext.getInitialDbStatus().message()
                     + "\n\nCác thay đổi trong phiên này sẽ không được lưu vào SQL Server.");
+            alert.showAndWait();
+        } else if (!appContext.getRepositoryWarnings().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Một số bảng chưa tải từ SQL Server");
+            alert.setHeaderText("Ứng dụng đang dùng dữ liệu tạm vì schema SQL chưa tương thích");
+            alert.setContentText(String.join("\n\n", appContext.getRepositoryWarnings())
+                    + "\n\nKiểm tra/cập nhật schema SQL Server rồi khởi động lại. Ứng dụng sẽ không trộn dữ liệu SQL với dữ liệu tạm.");
             alert.showAndWait();
         }
     }

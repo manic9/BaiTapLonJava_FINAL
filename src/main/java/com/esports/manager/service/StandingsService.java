@@ -27,10 +27,15 @@ public class StandingsService {
     }
 
     public ObservableList<StandingEntry> getAll() {
+        registrationRepo.findAll().stream()
+                .map(Registration::getTournamentId)
+                .distinct()
+                .forEach(this::recalculate);
         return standingRepo.findAll();
     }
 
     public List<StandingEntry> getByTournament(String tournamentId) {
+        recalculate(tournamentId);
         return standingRepo.findAll().stream()
                 .filter(s -> s.getTournamentId().equals(tournamentId))
                 .sorted(Comparator.comparingInt(StandingEntry::getRank))

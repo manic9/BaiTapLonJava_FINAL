@@ -80,6 +80,15 @@ public class BracketService {
             createdMatches.addAll(List.of(sf1, sf2, finalMatch));
         }
 
+        // Self-referencing FK_Matches_NextMatch requires every destination row to
+        // exist before a source row can point to it. Insert the whole bracket
+        // without links first, then persist the links in a second pass.
+        for (Match match : createdMatches) {
+            String nextMatchId = match.getNextMatchId();
+            match.setNextMatchId(null);
+            matchRepo.save(match);
+            match.setNextMatchId(nextMatchId);
+        }
         createdMatches.forEach(matchRepo::save);
         activityService.log("BRACKET", "Đã khởi tạo nhánh đấu " + bracketSize + " đội cho giải " + tournamentId);
         return createdMatches;

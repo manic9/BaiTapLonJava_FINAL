@@ -98,9 +98,8 @@
                             <TableColumn fx:id="colRegSeed" prefWidth="80.0" text="%col.seed" />
                             <TableColumn fx:id="colRegTeam" prefWidth="240.0" text="%col.team" />
                             <TableColumn fx:id="colRegRegion" prefWidth="130.0" text="%col.region" />
-                            <TableColumn fx:id="colRegNotes" prefWidth="280.0" text="%col.notes" />
                             <TableColumn fx:id="colRegStatus" prefWidth="130.0" text="%col.status" />
-                            <TableColumn fx:id="colRegAction" prefWidth="140.0" text="%col.actions" />
+                            <TableColumn fx:id="colRegNotes" prefWidth="280.0" text="%col.notes" />
                         </columns>
                         <columnResizePolicy>
                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

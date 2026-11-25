@@ -27,6 +27,15 @@ public final class ToastManager {
         show(message, "toast-error", "✗", "#EF4444");
     }
 
+    public static void showOperationError(String operation, RuntimeException error) {
+        Throwable cause = error;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        String detail = cause.getMessage();
+        showError(operation + (detail == null || detail.isBlank() ? " thất bại." : ": " + detail));
+    }
+
     public static void showInfo(String message) {
         show(message, "toast-info", "ℹ", "#00D4FF");
     }
