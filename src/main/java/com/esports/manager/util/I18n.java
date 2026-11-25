@@ -98,9 +98,8 @@ public final class I18n {
 
         vi.put("admin.role", "Xin Chào! Admin");
         en.put("admin.role", "Hi! Admin");
-
-        vi.put("admin.mode", "● Chế độ bộ nhớ");
-        en.put("admin.mode", "● In-Memory Mode");
+        vi.put("admin.greeting", "Xin Chào! %s");
+        en.put("admin.greeting", "Hi! %s");
 
         vi.put("lang.label", "Ngôn ngữ:");
         en.put("lang.label", "Language:");

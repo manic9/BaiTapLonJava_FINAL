@@ -12,7 +12,7 @@ import java.util.Map;
 /** Persists user-facing application preferences in dbo.AppSettings. */
 public final class SqlServerAppSettingsStore {
     private static final Map<String, String> DEFAULTS = Map.of(
-            "organizationName", "Nexus Arena Esports",
+            "organizationName", "Ql Tournament Esports",
             "currencySymbol", "$",
             "defaultBestOf", "3",
             "autoAdvanceBracket", "true",

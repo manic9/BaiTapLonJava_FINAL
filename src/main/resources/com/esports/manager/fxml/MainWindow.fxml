@@ -99,7 +99,6 @@
                     <FontIcon iconColor="#00D4FF" iconLiteral="fas-user-shield" iconSize="16" />
                     <VBox>
                         <Label fx:id="lblAdminRole" style="-fx-font-weight: bold; -fx-font-size: 12px;" text="Tournament Admin" />
-                        <Label fx:id="lblAdminMode" style="-fx-text-fill: #10B981; -fx-font-size: 11px;" text="● In-Memory Mode" />
                     </VBox>
                 </HBox>
             </VBox>

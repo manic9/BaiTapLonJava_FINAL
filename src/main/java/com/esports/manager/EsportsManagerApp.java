@@ -26,26 +26,11 @@ public class EsportsManagerApp extends Application {
             return;
         }
 
-        primaryStage.setTitle("Nexus Arena | Đăng nhập");
+        primaryStage.setTitle("QL TOURNAMENT| Đăng nhập");
         primaryStage.setMinWidth(390);
         primaryStage.setMinHeight(550);
         showLogin(primaryStage);
         primaryStage.show();
-        if (!appContext.getInitialDbStatus().connected()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Không kết nối được SQL Server");
-            alert.setHeaderText("Ứng dụng đang chạy ở chế độ dữ liệu tạm thời");
-            alert.setContentText(appContext.getInitialDbStatus().message()
-                    + "\n\nCác thay đổi trong phiên này sẽ không được lưu vào SQL Server.");
-            alert.showAndWait();
-        } else if (!appContext.getRepositoryWarnings().isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Một số bảng chưa tải từ SQL Server");
-            alert.setHeaderText("Ứng dụng đang dùng dữ liệu tạm vì schema SQL chưa tương thích");
-            alert.setContentText(String.join("\n\n", appContext.getRepositoryWarnings())
-                    + "\n\nKiểm tra/cập nhật schema SQL Server rồi khởi động lại. Ứng dụng sẽ không trộn dữ liệu SQL với dữ liệu tạm.");
-            alert.showAndWait();
-        }
     }
 
     public static void showLogin(Stage stage) {
@@ -56,10 +41,14 @@ public class EsportsManagerApp extends Application {
             applyTheme(scene);
             LoginController controller = loader.getController();
             controller.setOnAuthenticated(() -> showAdmin(stage));
-            stage.setTitle("Nexus Arena | Đăng nhập");
+            stage.setTitle("QL TOURNAMENT | Đăng nhập");
             stage.setMinWidth(390);
             stage.setMinHeight(550);
+            stage.setMaximized(false);
             stage.setScene(scene);
+            stage.setWidth(430);
+            stage.setHeight(600);
+            stage.centerOnScreen();
         } catch (Exception e) {
             throw new IllegalStateException("Không thể mở màn hình đăng nhập", e);
         }
@@ -71,10 +60,11 @@ public class EsportsManagerApp extends Application {
                     EsportsManagerApp.class.getResource("/com/esports/manager/fxml/MainWindow.fxml")));
             Scene scene = new Scene(loader.load(), 1380, 820);
             applyTheme(scene);
-            stage.setTitle("Nexus Arena | Quản trị giải đấu");
+            stage.setTitle("QL TOURNAMENT | Quản trị giải đấu");
             stage.setMinWidth(1180);
             stage.setMinHeight(720);
             stage.setScene(scene);
+            stage.setMaximized(true);
         } catch (Exception e) {
             throw new IllegalStateException("Không thể mở trang quản trị", e);
         }

@@ -51,6 +51,7 @@ public final class AppContext {
     private PrizeService prizeService;
 
     private boolean initialized = false;
+    private String currentUserFullName = "Admin";
 
     private AppContext() {
         this.databaseConfig = DatabaseConfig.load();
@@ -191,6 +192,15 @@ public final class AppContext {
     }
 
     public AppSettings getSettings() { return settings; }
+    public String getCurrentUserFullName() { return currentUserFullName; }
+    public void setCurrentUser(AuthenticationService.AuthenticatedUser user) {
+        if (user == null) {
+            currentUserFullName = "Admin";
+            return;
+        }
+        currentUserFullName = user.fullName() == null || user.fullName().isBlank()
+                ? user.username() : user.fullName();
+    }
     public Repository<Tournament> getTournamentRepo() { return tournamentRepo; }
     public Repository<Team> getTeamRepo() { return teamRepo; }
     public Repository<Player> getPlayerRepo() { return playerRepo; }

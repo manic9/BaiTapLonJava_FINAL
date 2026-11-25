@@ -254,6 +254,7 @@
 /* ==================== MODERN TABLE VIEW ==================== */
 .table-view {
     -fx-background-color: -bg-panel;
+    -fx-table-cell-border-color: rgba(51, 65, 85, 0.45);
     -fx-border-color: -border-subtle;
     -fx-border-radius: 12px;
     -fx-background-radius: 12px;
@@ -295,6 +296,8 @@
     -fx-text-fill: -text-primary;
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 0 12 0 12;
+    -fx-border-color: transparent rgba(51, 65, 85, 0.45) transparent transparent;
+    -fx-border-width: 0 1 0 0;
 }
 
 /* ==================== STATUS BADGES ==================== */
@@ -549,6 +552,9 @@
 .login-select .arrow-button { -fx-background-color: #352D4C; -fx-background-radius: 0 6px 6px 0; }
 .login-select .arrow { -fx-background-color: #BFC1C4; }
 .login-actions { -fx-pref-height: 42px; }
+.login-signup { -fx-pref-height: 22px; -fx-font-size: 11px; }
+.login-signup .label { -fx-text-fill: #D0C9E0; }
+.login-signup .hyperlink { -fx-text-fill: #A78BFA; -fx-font-weight: bold; -fx-border-color: transparent; }
 .login-remember { -fx-font-size: 11px; -fx-text-fill: #E4E5E6; }
 .login-remember .box { -fx-pref-width: 16px; -fx-pref-height: 16px; -fx-background-color: #414244; -fx-border-color: #67696B; -fx-border-radius: 50%; -fx-background-radius: 50%; }
 .login-remember:selected .box { -fx-background-color: #7C5CFC; -fx-border-color: #7C5CFC; }

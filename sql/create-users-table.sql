@@ -1,12 +1,16 @@
 IF OBJECT_ID(N'dbo.Users', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Users (
-        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Users PRIMARY KEY,
-        UserName NVARCHAR(100) NOT NULL,
-        PasswordHash NVARCHAR(128) NOT NULL,
+        Id NVARCHAR(36) NOT NULL CONSTRAINT PK_Users PRIMARY KEY,
+        Username NVARCHAR(50) NOT NULL,
+        PasswordHash NVARCHAR(256) NOT NULL,
         PasswordSalt NVARCHAR(64) NOT NULL,
+        FullName NVARCHAR(100) NOT NULL,
+        Role NVARCHAR(30) NOT NULL CONSTRAINT DF_Users_Role DEFAULT N'REFEREE',
         IsActive BIT NOT NULL CONSTRAINT DF_Users_IsActive DEFAULT (1),
-        CreatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_Users_CreatedAt DEFAULT (SYSUTCDATETIME()),
-        CONSTRAINT UQ_Users_UserName UNIQUE (UserName)
+        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_Users_CreatedAt DEFAULT SYSDATETIME(),
+        UpdatedAt DATETIME2 NULL,
+        CONSTRAINT UQ_Users_Username UNIQUE (Username),
+        CONSTRAINT CK_Users_Role CHECK (Role IN (N'ADMIN', N'ORGANIZER', N'REFEREE'))
     );
 END;

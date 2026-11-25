@@ -77,7 +77,7 @@ public final class FxTaskRunner {
 
     public static void showErrorAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Nexus Arena - Thông báo");
+        alert.setTitle("Ql TOurnament - Thông báo");
         alert.setHeaderText(title);
         alert.setContentText(content);
         alert.showAndWait();
@@ -85,7 +85,7 @@ public final class FxTaskRunner {
 
     public static void showInfoAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Nexus Arena - Thông báo");
+        alert.setTitle("Ql TOurnament - Thông báo");
         alert.setHeaderText(title);
         alert.setContentText(content);
         alert.showAndWait();

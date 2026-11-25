@@ -9,7 +9,7 @@ BEGIN
         PasswordHash    NVARCHAR(256)   NOT NULL,
         PasswordSalt    NVARCHAR(64)    NOT NULL,
         FullName        NVARCHAR(100)   NOT NULL,
-        Role            NVARCHAR(30)    NOT NULL CONSTRAINT DF_Users_Role DEFAULT N'ADMIN',
+        Role            NVARCHAR(30)    NOT NULL CONSTRAINT DF_Users_Role DEFAULT N'REFEREE',
         IsActive        BIT             NOT NULL CONSTRAINT DF_Users_IsActive DEFAULT 1,
         CreatedAt       DATETIME2       NOT NULL CONSTRAINT DF_Users_CreatedAt DEFAULT SYSDATETIME(),
         UpdatedAt       DATETIME2       NULL,

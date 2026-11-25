@@ -1,7 +1,7 @@
 package com.esports.manager.model;
 
 public class AppSettings {
-    private String organizationName = "Nexus Arena Esports";
+    private String organizationName = "QL Tournament Esports";
     private String currencySymbol = "$";
     private int defaultBestOf = 3;
     private boolean autoAdvanceBracket = true;

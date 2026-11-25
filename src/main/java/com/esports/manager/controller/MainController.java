@@ -49,7 +49,6 @@ public class MainController {
     // Topbar & Admin Footer
     @FXML private Button btnQuickCreate;
     @FXML private Label lblAdminRole;
-    @FXML private Label lblAdminMode;
 
     // Language Toggle
     @FXML private Label lblLanguageLabel;
@@ -148,8 +147,9 @@ public class MainController {
         if (txtGlobalSearch != null) txtGlobalSearch.setPromptText(I18n.get("topbar.search_prompt"));
         if (btnQuickCreate != null) btnQuickCreate.setText(I18n.get("topbar.create_tournament"));
 
-        if (lblAdminRole != null) lblAdminRole.setText(I18n.get("admin.role"));
-        if (lblAdminMode != null) lblAdminMode.setText(I18n.get("admin.mode"));
+        if (lblAdminRole != null) {
+            lblAdminRole.setText(I18n.get("admin.greeting", AppContext.getInstance().getCurrentUserFullName()));
+        }
 
         if (lblLanguageLabel != null) lblLanguageLabel.setText(I18n.get("lang.label"));
     }
