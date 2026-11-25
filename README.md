@@ -1,4 +1,4 @@
-# Nexus Arena
+# Ql Tournament
 
 Ứng dụng desktop JavaFX quản lý giải đấu esports. Dữ liệu nghiệp vụ và tài khoản được lưu trong Microsoft SQL Server. Ứng dụng cần kết nối SQL thành công để khởi động; không có tài khoản đăng nhập mặc định.
 
@@ -23,8 +23,11 @@
 Script và cấu hình IntelliJ hiện có đường dẫn của máy phát triển:
 
 - JavaFX: `C:\javafx-sdk-27.0.1.1\lib`
-- Ikonli: `C:\Users\admin\.m2\repository\org\kordamp\ikonli\...\12.3.1`
+- Ikonli: `C:\Users\admin\.m2\repository\org\kordamp\ikonli\X\12.3.1`
 - SQL Server JDBC: `C:\sqljdbc_13.6\enu\jars`
+- SQL Server JDBC Auth: `C:\sqljdbc_13.6\enu\auth\x64` và `C:\sqljdbc_13.6\enu\auth\x64`
+
+Thư mục **X** ở đây bao gồm: **ikonli-core**, **ikonli-fontawesome5-pack** và **ikonli-javafx** 
 
 Nếu thư viện nằm chỗ khác, cập nhật đường dẫn trong `build.ps1`, `run.ps1` và cấu hình thư viện của IntelliJ (`untitled.iml`). Script tự thêm các JAR đặt trong thư mục `lib` ở thư mục gốc vào classpath.
 
