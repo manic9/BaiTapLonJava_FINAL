@@ -76,6 +76,5 @@ VALUES (N'<username>', N'<PasswordHash>', N'<PasswordSalt>');
 
 ## Lưu ý
 
-- Dự án dùng **In-Memory Repository** — không cần database
 - Dữ liệu mẫu được nạp sẵn khi khởi động
 - Path variable `$JavaFX_HOME$` giúp dự án hoạt động trên nhiều máy mà không cần sửa code
