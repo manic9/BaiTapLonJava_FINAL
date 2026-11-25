@@ -9,7 +9,9 @@ import com.esports.manager.repository.Repository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class BracketService {
@@ -32,15 +34,26 @@ public class BracketService {
      * Tự động sinh cây nhánh đấu loại trực tiếp (4 hoặc 8 đội) từ danh sách đội đã duyệt.
      */
     public List<Match> generateSingleEliminationBracket(String tournamentId) {
-        List<Registration> approved = new ArrayList<>(registrationService.getApprovedByTournament(tournamentId));
-        approved.sort(Comparator.comparingInt(Registration::getSeedNumber));
+        List<Registration> approved = getUniqueApprovedRegistrations(tournamentId);
 
         if (approved.size() < 4) {
             throw new IllegalStateException("Cần tối thiểu 4 đội đã được duyệt để tạo nhánh đấu!");
         }
 
-        // Xóa nhánh đấu cũ của giải nếu có
-        matchRepo.findAll().removeIf(m -> m.getTournamentId().equals(tournamentId));
+        List<Match> existingMatches = new ArrayList<>(matchRepo.findAll().stream()
+                .filter(match -> tournamentId.equals(match.getTournamentId()))
+                .toList());
+        List<Match> repairedBracket = repairMissingFourTeamFinal(tournamentId, approved, existingMatches);
+        if (repairedBracket != null) {
+            activityService.log("BRACKET", "Đã bổ sung trận chung kết còn thiếu cho giải " + tournamentId);
+            return repairedBracket;
+        }
+
+        // Delete old bracket records from the repository/database, not only from
+        // the observable cache returned by findAll().
+        for (Match oldMatch : existingMatches) {
+            matchRepo.deleteById(oldMatch.getId());
+        }
 
         int bracketSize = approved.size() >= 8 ? 8 : 4;
         List<Match> createdMatches = new ArrayList<>();
@@ -92,6 +105,92 @@ public class BracketService {
         createdMatches.forEach(matchRepo::save);
         activityService.log("BRACKET", "Đã khởi tạo nhánh đấu " + bracketSize + " đội cho giải " + tournamentId);
         return createdMatches;
+    }
+
+    /** Add a missing final to an existing four-team bracket without resetting its results. */
+    public void ensureFourTeamFinalExists(String tournamentId) {
+        List<Registration> approved = getUniqueApprovedRegistrations(tournamentId);
+        if (approved.size() != 4) return;
+
+        List<Match> existingMatches = new ArrayList<>(matchRepo.findAll().stream()
+                .filter(match -> tournamentId.equals(match.getTournamentId()))
+                .toList());
+        if (repairMissingFourTeamFinal(tournamentId, approved, existingMatches) != null) {
+            activityService.log("BRACKET", "Đã tự bổ sung trận chung kết còn thiếu cho giải " + tournamentId);
+        }
+    }
+
+    private List<Registration> getUniqueApprovedRegistrations(String tournamentId) {
+        List<Registration> approved = new ArrayList<>(registrationService.getApprovedByTournament(tournamentId));
+        approved.sort(Comparator.comparingInt(Registration::getSeedNumber));
+
+        // Historical data may contain multiple approved registrations for one team.
+        // A team must occupy only one slot in a bracket.
+        Set<String> teamIds = new HashSet<>();
+        approved.removeIf(registration -> registration.getTeamId() == null
+                || !teamIds.add(registration.getTeamId()));
+        return approved;
+    }
+
+    /**
+     * Older/incomplete four-team brackets may contain only their two semifinals.
+     * Add the missing final and link existing semifinals without discarding scores.
+     */
+    private List<Match> repairMissingFourTeamFinal(String tournamentId,
+                                                    List<Registration> approved,
+                                                    List<Match> existingMatches) {
+        if (approved.size() != 4 || existingMatches.size() != 2) return null;
+
+        List<Match> semifinals = existingMatches.stream()
+                .filter(match -> isSemifinal(match.getRoundName()))
+                .sorted(Comparator.comparingInt(Match::getMatchNumber))
+                .toList();
+        boolean alreadyHasFinal = existingMatches.stream().anyMatch(match -> isFinal(match.getRoundName()));
+        if (semifinals.size() != 2 || alreadyHasFinal) return null;
+
+        LocalDateTime finalTime = semifinals.stream()
+                .map(Match::getScheduledTime)
+                .filter(java.util.Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .map(time -> time.plusDays(1))
+                .orElseGet(() -> LocalDateTime.now().plusDays(1).withHour(18).withMinute(0));
+        Match finalMatch = buildEmptyMatch(tournamentId, 2, 1, "Chung kết tổng", 5,
+                null, 0, finalTime);
+
+        for (int i = 0; i < semifinals.size(); i++) {
+            Match semifinal = semifinals.get(i);
+            if (semifinal.getStatus() == MatchStatus.COMPLETED && semifinal.getWinnerId() != null) {
+                if (i == 0) finalMatch.setTeamAId(semifinal.getWinnerId());
+                else finalMatch.setTeamBId(semifinal.getWinnerId());
+            }
+        }
+
+        // Insert destination first to satisfy the self-referencing SQL foreign key.
+        matchRepo.save(finalMatch);
+        for (int i = 0; i < semifinals.size(); i++) {
+            Match semifinal = semifinals.get(i);
+            semifinal.setNextMatchId(finalMatch.getId());
+            semifinal.setNextMatchSlot(i + 1);
+            matchRepo.save(semifinal);
+        }
+
+        return new ArrayList<>(matchRepo.findAll().stream()
+                .filter(match -> tournamentId.equals(match.getTournamentId()))
+                .toList());
+    }
+
+    private boolean isSemifinal(String roundName) {
+        if (roundName == null) return false;
+        String normalized = roundName.trim().toLowerCase(java.util.Locale.ROOT);
+        return normalized.contains("bán kết") || normalized.contains("semi-final")
+                || normalized.contains("semifinal");
+    }
+
+    private boolean isFinal(String roundName) {
+        if (roundName == null) return false;
+        String normalized = roundName.trim().toLowerCase(java.util.Locale.ROOT);
+        return normalized.contains("chung kết") || normalized.startsWith("final")
+                || normalized.contains("grand final");
     }
 
     /**

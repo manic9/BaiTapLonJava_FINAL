@@ -88,7 +88,6 @@ public class SqlServerRegistrationRepository implements Repository<Registration>
 
     @Override
     public ObservableList<Registration> findAll() {
-        reloadCache();
         return cache;
     }
 
@@ -96,6 +95,11 @@ public class SqlServerRegistrationRepository implements Repository<Registration>
     public Optional<Registration> findById(String id) {
         if (id == null || id.isBlank()) {
             return Optional.empty();
+        }
+        for (Registration cached : cache) {
+            if (id.equals(cached.getId())) {
+                return Optional.of(cached);
+            }
         }
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {

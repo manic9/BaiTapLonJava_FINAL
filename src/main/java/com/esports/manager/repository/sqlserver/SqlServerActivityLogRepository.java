@@ -71,7 +71,6 @@ public class SqlServerActivityLogRepository implements Repository<ActivityLog> {
 
     @Override
     public ObservableList<ActivityLog> findAll() {
-        reloadCache();
         return cache;
     }
 
@@ -79,6 +78,11 @@ public class SqlServerActivityLogRepository implements Repository<ActivityLog> {
     public Optional<ActivityLog> findById(String id) {
         if (id == null || id.isBlank()) {
             return Optional.empty();
+        }
+        for (ActivityLog cached : cache) {
+            if (id.equals(cached.getId())) {
+                return Optional.of(cached);
+            }
         }
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {

@@ -87,7 +87,6 @@ public class SqlServerTeamRepository implements Repository<Team> {
 
     @Override
     public ObservableList<Team> findAll() {
-        reloadCache();
         return cache;
     }
 
@@ -95,6 +94,11 @@ public class SqlServerTeamRepository implements Repository<Team> {
     public Optional<Team> findById(String id) {
         if (id == null || id.isBlank()) {
             return Optional.empty();
+        }
+        for (Team cached : cache) {
+            if (id.equals(cached.getId())) {
+                return Optional.of(cached);
+            }
         }
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {

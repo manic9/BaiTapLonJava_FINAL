@@ -143,7 +143,17 @@ public final class AppContext {
         matchService = new MatchService(matchRepo, bracketService, standingsService, teamService, activityService);
         prizeService = new PrizeService(prizeRepo, activityService);
 
-        MockDataSeeder.seed(this);
+        // Seed demo data only for a completely empty store. Re-seeding a populated
+        // SQL database on every launch causes unnecessary writes and startup lag.
+        boolean storeIsEmpty = tournamentRepo.findAll().isEmpty()
+                && teamRepo.findAll().isEmpty()
+                && playerRepo.findAll().isEmpty()
+                && registrationRepo.findAll().isEmpty()
+                && matchRepo.findAll().isEmpty()
+                && prizeRepo.findAll().isEmpty();
+        if (storeIsEmpty) {
+            MockDataSeeder.seed(this);
+        }
         initialized = true;
     }
 

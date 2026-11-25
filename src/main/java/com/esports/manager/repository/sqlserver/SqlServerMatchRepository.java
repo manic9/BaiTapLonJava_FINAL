@@ -101,7 +101,6 @@ public class SqlServerMatchRepository implements Repository<Match> {
 
     @Override
     public ObservableList<Match> findAll() {
-        reloadCache();
         return cache;
     }
 
@@ -109,6 +108,11 @@ public class SqlServerMatchRepository implements Repository<Match> {
     public Optional<Match> findById(String id) {
         if (id == null || id.isBlank()) {
             return Optional.empty();
+        }
+        for (Match cached : cache) {
+            if (id.equals(cached.getId())) {
+                return Optional.of(cached);
+            }
         }
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {

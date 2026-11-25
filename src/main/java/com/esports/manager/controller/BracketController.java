@@ -11,9 +11,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
+import javafx.scene.transform.Scale;
+import javafx.scene.input.ScrollEvent;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.time.format.DateTimeFormatter;
@@ -24,6 +27,8 @@ public class BracketController {
 
     @FXML private ComboBox<Tournament> cbTournament;
     @FXML private Pane bracketCanvas;
+    @FXML private ScrollPane scrollPane;
+    @FXML private Label lblZoom;
     @FXML private HBox championBanner;
     @FXML private Label lblChampionName;
 
@@ -37,11 +42,21 @@ public class BracketController {
     private static final double BASE_SLOT_HEIGHT = 122.0;
     private static final double PADDING_X = 34.0;
     private static final double PADDING_Y = 66.0;
+    private static final double MIN_ZOOM = 0.5;
+    private static final double MAX_ZOOM = 2.0;
+    private static final double ZOOM_STEP = 0.1;
+    private double zoom = 1.0;
 
     private record NodeBounds(double x, double y, double centerY) {}
 
     @FXML
     public void initialize() {
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.isControlDown()) {
+                setZoom(zoom + (event.getDeltaY() > 0 ? ZOOM_STEP : -ZOOM_STEP));
+                event.consume();
+            }
+        });
         var tournaments = ctx.getTournamentService().getAll();
         cbTournament.setItems(tournaments);
 
@@ -54,6 +69,24 @@ public class BracketController {
         if (!tournaments.isEmpty()) {
             cbTournament.getSelectionModel().selectFirst();
         }
+    }
+
+    @FXML
+    private void handleZoomIn() { setZoom(zoom + ZOOM_STEP); }
+
+    @FXML
+    private void handleZoomOut() { setZoom(zoom - ZOOM_STEP); }
+
+    @FXML
+    private void handleZoomReset() { setZoom(1.0); }
+
+    private void setZoom(double requestedZoom) {
+        zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, requestedZoom));
+        bracketCanvas.getTransforms().setAll(new Scale(zoom, zoom, 0, 0));
+        lblZoom.setText(Math.round(zoom * 100) + "%");
+        // Group (the ScrollPane content wrapper) measures transformed child bounds,
+        // so both scrollbars follow the zoomed bracket dimensions.
+        bracketCanvas.requestLayout();
     }
 
     public void selectTournament(String tournamentId) {
@@ -88,6 +121,12 @@ public class BracketController {
         championBanner.setVisible(false);
         championBanner.setManaged(false);
 
+        try {
+            ctx.getBracketService().ensureFourTeamFinalExists(tournamentId);
+        } catch (RuntimeException ex) {
+            ToastManager.showOperationError("Không thể bổ sung trận chung kết", ex);
+        }
+
         List<Match> matches = ctx.getMatchService().getByTournament(tournamentId);
         if (matches.isEmpty()) {
             renderEmptyState();
@@ -117,7 +156,7 @@ public class BracketController {
             double x = PADDING_X + (round - 1) * (CARD_WIDTH + ROUND_GAP);
 
             // Tiêu đề vòng đấu (Header pill)
-            Label roundHeader = createRoundHeader(round, totalRounds, x);
+            Label roundHeader = createRoundHeader(roundMatches.get(0).getRoundName(), x);
             bracketCanvas.getChildren().add(roundHeader);
 
             double span = BASE_SLOT_HEIGHT * Math.pow(2, round - 1);
@@ -135,7 +174,7 @@ public class BracketController {
                 matchCards.add(card);
 
                 // Kiểm tra nhà vô địch ở trận cuối cùng
-                if (round == totalRounds && match.getStatus() == MatchStatus.COMPLETED && match.getWinnerId() != null) {
+                if (isFinalMatch(match) && match.getStatus() == MatchStatus.COMPLETED && match.getWinnerId() != null) {
                     championBanner.setVisible(true);
                     championBanner.setManaged(true);
                     lblChampionName.setText(ctx.getTeamService().getTeamNameOrTbd(match.getWinnerId()).toUpperCase());
@@ -177,17 +216,12 @@ public class BracketController {
         bracketCanvas.getChildren().addAll(matchCards);
     }
 
-    private Label createRoundHeader(int round, int totalRounds, double x) {
-        String title;
-        if (round == totalRounds) {
-            title = com.esports.manager.util.I18n.get("round.final").toUpperCase();
-        } else if (round == totalRounds - 1) {
-            title = com.esports.manager.util.I18n.get("round.semi_final").toUpperCase();
-        } else {
-            title = com.esports.manager.util.I18n.get("round.round_%d", round).toUpperCase();
-        }
+    private Label createRoundHeader(String roundName, double x) {
+        String title = roundName == null || roundName.isBlank()
+                ? com.esports.manager.util.I18n.get("round.unknown")
+                : roundName.replaceFirst("\\s+\\d+$", "");
 
-        Label lbl = new Label(title);
+        Label lbl = new Label(title.toUpperCase());
         lbl.setPrefWidth(CARD_WIDTH);
         lbl.setAlignment(Pos.CENTER);
         lbl.setLayoutX(x);
@@ -196,6 +230,15 @@ public class BracketController {
                 "-fx-font-size: 11px; -fx-padding: 6 12; -fx-background-radius: 8px; " +
                 "-fx-border-color: #1E293B; -fx-border-radius: 8px;");
         return lbl;
+    }
+
+    private boolean isFinalMatch(Match match) {
+        String roundName = match.getRoundName();
+        if (roundName == null) return false;
+        String normalized = roundName.trim().toLowerCase(Locale.ROOT);
+        return normalized.contains("chung kết")
+                || normalized.startsWith("final")
+                || normalized.contains("grand final");
     }
 
     private VBox createMatchCard(Match match, String tournamentId) {

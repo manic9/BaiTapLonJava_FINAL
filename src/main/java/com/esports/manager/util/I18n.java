@@ -213,6 +213,8 @@ public final class I18n {
         // ==================== ROUND NAMES ====================
         vi.put("round.final", "Chung kết");
         en.put("round.final", "Final");
+        vi.put("round.unknown", "Vòng đấu");
+        en.put("round.unknown", "Round");
 
         vi.put("round.semi_final", "Bán kết");
         en.put("round.semi_final", "Semi-Final");
@@ -410,6 +412,8 @@ public final class I18n {
 
         vi.put("col.age", "TUỔI");
         en.put("col.age", "AGE");
+        vi.put("bracket.zoom_reset", "Đặt lại");
+        en.put("bracket.zoom_reset", "Reset");
 
         vi.put("col.kda", "KDA RATIO");
         en.put("col.kda", "KDA RATIO");

@@ -88,7 +88,6 @@ public class SqlServerPlayerRepository implements Repository<Player> {
 
     @Override
     public ObservableList<Player> findAll() {
-        reloadCache();
         return cache;
     }
 
@@ -96,6 +95,11 @@ public class SqlServerPlayerRepository implements Repository<Player> {
     public Optional<Player> findById(String id) {
         if (id == null || id.isBlank()) {
             return Optional.empty();
+        }
+        for (Player cached : cache) {
+            if (id.equals(cached.getId())) {
+                return Optional.of(cached);
+            }
         }
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {

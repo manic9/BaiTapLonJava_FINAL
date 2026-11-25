@@ -129,7 +129,6 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
 
     @Override
     public ObservableList<Tournament> findAll() {
-        reloadCache();
         return cache;
     }
 
@@ -137,6 +136,11 @@ public class SqlServerTournamentRepository implements Repository<Tournament> {
     public Optional<Tournament> findById(String id) {
         if (id == null || id.isBlank()) {
             return Optional.empty();
+        }
+        for (Tournament cached : cache) {
+            if (id.equals(cached.getId())) {
+                return Optional.of(cached);
+            }
         }
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(selectByIdSql)) {
